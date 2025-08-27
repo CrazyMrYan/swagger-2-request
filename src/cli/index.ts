@@ -17,8 +17,7 @@ const program = new Command();
 
 // 设置基础信息
 program
-  .name('swagger-2-request')
-  .alias('s2r')
+  .name('s2r')
   .description('Generate TypeScript API clients from Swagger/OpenAPI documents')
   .version(VERSION);
 
@@ -104,7 +103,7 @@ program.on('--help', () => {
   console.log('  $ s2r publish ./swagger.json -n @company/api-client');
   console.log('  $ s2r ai-docs ./swagger.json -o ./docs/api-ai.md');
   console.log('');
-  console.log('For more information, visit: https://swagger-2-request.dev');
+  console.log('For more information, visit: https://s2r.dev');
 });
 
 // 解析命令行参数

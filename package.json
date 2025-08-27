@@ -1,21 +1,23 @@
 {
-  "name": "@yjh1102/swagger-2-request",
-  "version": "0.1.4",
+  "name": "s2r",
+  "version": "0.1.5",
   "type": "module",
-  "description": "Generate TypeScript API clients from Swagger/OpenAPI documents with built-in axios, mock server, and AI-friendly documentation",
+  "description": "Generate TypeScript API clients from Swagger/OpenAPI 2.0-3.1 documents with built-in axios, mock server, and AI-friendly documentation - S2R (Swagger to Request)",
   "keywords": [
     "swagger",
     "openapi",
+    "openapi-3.1",
     "typescript",
     "api-client",
     "code-generator",
     "mock-server",
-    "axios"
+    "axios",
+    "s2r"
   ],
-  "homepage": "https://swagger-2-request.dev",
+  "homepage": "https://s2r.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swagger-2-request/swagger-2-request.git"
+    "url": "git+https://github.com/CrazyMrYan/s2r.git"
   },
   "license": "MIT",
   "author": {
@@ -58,6 +60,8 @@
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^14.2.0",
+    "@readme/openapi-parser": "^5.0.1",
+    "@scalar/openapi-parser": "^0.20.1",
     "axios": "^1.6.0",
     "chalk": "4.1.2",
     "commander": "^11.0.0",
@@ -96,6 +100,6 @@
   },
   "funding": {
     "type": "github",
-    "url": "https://github.com/sponsors/swagger-2-request"
+    "url": "https://github.com/sponsors/s2r"
   }
 }

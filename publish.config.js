@@ -7,31 +7,31 @@ export default {
   // 基本包信息
   package: {
     // 包名（如果不指定，将从swagger.info.title生成）
-    name: '@yjh1102/swagger-2-request',
+    name: 's2r',
     
     // 版本号（如果不指定，将自动递增）
     version: '0.1.0',
     
     // 包描述
-    description: 'Generate TypeScript API clients from Swagger/OpenAPI documents with built-in axios, mock server, and AI-friendly documentation',
+    description: 'Generate TypeScript API clients from Swagger/OpenAPI 2.0-3.1 documents with built-in axios, mock server, and AI-friendly documentation',
     
     // 作者信息
     author: {
       name: 'CrazyMrYan',
       email: 'crazymryan@gmail.com',
-      url: 'https://github.com/CrazyMrYan/swagger-2-request'
+      url: 'https://github.com/CrazyMrYan/s2r'
     },
     
     // 许可证
     license: 'MIT',
     
     // 主页
-    homepage: 'https://github.com/CrazyMrYan/swagger-2-request',
+    homepage: 'https://github.com/CrazyMrYan/s2r',
     
     // 仓库信息
     repository: {
       type: 'git',
-      url: 'https://github.com/CrazyMrYan/swagger-2-request'
+      url: 'https://github.com/CrazyMrYan/s2r'
     },
     
     // 关键词

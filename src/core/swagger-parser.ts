@@ -1,10 +1,11 @@
 /**
  * Swagger 解析器
- * 使用 swagger-parser 解析 OpenAPI 文档，提取 paths、components、schemas
+ * 支持 OpenAPI 3.0-3.1 版本，使用多种解析器提取 paths、components、schemas
  */
 
 import SwaggerParser from 'swagger-parser';
-import { OpenAPIV3 } from 'openapi-types';
+import { parse as parseWithReadme } from '@readme/openapi-parser';
+import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 import { NamingStrategy } from './naming-strategy';
 import type {
   ParsedSwagger,
@@ -15,8 +16,11 @@ import type {
   HTTPMethod,
 } from '../types';
 
+// 支持的 OpenAPI 版本类型
+type OpenAPIDocument = OpenAPIV3.Document | OpenAPIV3_1.Document;
+
 export class SwaggerAnalyzer {
-  private schema!: OpenAPIV3.Document;
+  private schema!: OpenAPIDocument;
   private namingStrategy: NamingStrategy;
 
   constructor() {
@@ -28,11 +32,44 @@ export class SwaggerAnalyzer {
    * @param source Swagger 文档路径、URL 或对象
    * @returns 解析后的 Swagger 数据
    */
-  async parseSwagger(source: string | OpenAPIV3.Document): Promise<ParsedSwagger> {
+  async parseSwagger(source: string | OpenAPIDocument): Promise<ParsedSwagger> {
     try {
-      // 使用 swagger-parser 解析和验证文档
-      const parser = SwaggerParser as any;
-      this.schema = (await parser.dereference(source)) as OpenAPIV3.Document;
+      // 先尝试获取文档内容（如果是 URL）
+      let apiDoc: OpenAPIDocument;
+      
+      if (typeof source === 'string') {
+        if (source.startsWith('http')) {
+          // 从 URL 获取
+          const response = await fetch(source);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch from ${source}: ${response.statusText}`);
+          }
+          apiDoc = await response.json();
+        } else {
+          // 从文件路径读取
+          const fs = await import('fs/promises');
+          const content = await fs.readFile(source, 'utf-8');
+          apiDoc = JSON.parse(content);
+        }
+      } else {
+        apiDoc = source;
+      }
+      
+      // 检查 OpenAPI 版本并选择合适的解析器
+      const version = this.getOpenAPIVersion(apiDoc);
+      
+      if (version.startsWith('3.1')) {
+        // 使用 @readme/openapi-parser 处理 3.1
+        console.log('🔄 Using @readme/openapi-parser for OpenAPI 3.1');
+        this.schema = await parseWithReadme(apiDoc) as OpenAPIDocument;
+      } else if (version.startsWith('3.0')) {
+        // 使用 swagger-parser 处理 3.0
+        console.log('🔄 Using swagger-parser for OpenAPI 3.0');
+        const parser = SwaggerParser as any;
+        this.schema = (await parser.dereference(apiDoc)) as OpenAPIDocument;
+      } else {
+        throw new Error(`Unsupported OpenAPI version: ${version}. Supported versions: 3.0.x, 3.1.x`);
+      }
       
       return this.transformSchema();
     } catch (error) {
@@ -46,15 +83,56 @@ export class SwaggerAnalyzer {
    * @param source Swagger 文档路径、URL 或对象
    * @returns 验证结果
    */
-  async validateSwagger(source: string | OpenAPIV3.Document): Promise<boolean> {
+  async validateSwagger(source: string | OpenAPIDocument): Promise<boolean> {
     try {
-      const parser = SwaggerParser as any;
-      await parser.validate(source);
-      return true;
+      // 首先获取文档内容
+      let apiDoc: OpenAPIDocument;
+      
+      if (typeof source === 'string') {
+        if (source.startsWith('http')) {
+          const response = await fetch(source);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch from ${source}: ${response.statusText}`);
+          }
+          apiDoc = await response.json();
+        } else {
+          const fs = await import('fs/promises');
+          const content = await fs.readFile(source, 'utf-8');
+          apiDoc = JSON.parse(content);
+        }
+      } else {
+        apiDoc = source;
+      }
+      
+      const version = this.getOpenAPIVersion(apiDoc);
+      
+      if (version.startsWith('3.1')) {
+        // 使用 @scalar/openapi-parser 验证 3.1
+        const { validate } = await import('@scalar/openapi-parser');
+        const result = await validate(apiDoc);
+        if (!result.valid) {
+          throw new Error(`Validation failed: ${JSON.stringify(result.errors)}`);
+        }
+        return true;
+      } else if (version.startsWith('3.0')) {
+        // 使用 swagger-parser 验证 3.0
+        const parser = SwaggerParser as any;
+        await parser.validate(apiDoc);
+        return true;
+      } else {
+        throw new Error(`Unsupported OpenAPI version: ${version}`);
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Swagger validation failed: ${errorMessage}`);
     }
+  }
+
+  /**
+   * 获取 OpenAPI 版本
+   */
+  private getOpenAPIVersion(apiDoc: any): string {
+    return apiDoc.openapi || apiDoc.swagger || '3.0.0';
   }
 
   /**
@@ -97,7 +175,7 @@ export class SwaggerAnalyzer {
       const methods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'] as const;
 
       methods.forEach(method => {
-        const operation = pathItem[method] as OpenAPIV3.OperationObject;
+        const operation = pathItem[method] as OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject;
         if (!operation) return;
 
         const endpoint: APIEndpoint = {
@@ -124,8 +202,8 @@ export class SwaggerAnalyzer {
    * 提取参数信息
    */
   private extractParameters(
-    operation: OpenAPIV3.OperationObject,
-    pathItem: OpenAPIV3.PathItemObject
+    operation: OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject,
+    pathItem: OpenAPIV3.PathItemObject | OpenAPIV3_1.PathItemObject
   ): Parameter[] {
     const parameters: Parameter[] = [];
 
@@ -158,7 +236,7 @@ export class SwaggerAnalyzer {
   /**
    * 提取响应信息
    */
-  private extractResponses(operation: OpenAPIV3.OperationObject): ResponseDefinition[] {
+  private extractResponses(operation: OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject): ResponseDefinition[] {
     const responses: ResponseDefinition[] = [];
 
     if (!operation.responses) {
@@ -180,14 +258,17 @@ export class SwaggerAnalyzer {
 
       if (response.content) {
         responseDefinition.content = Object.fromEntries(
-          Object.entries(response.content).map(([mediaType, mediaTypeObject]) => [
-            mediaType,
-            {
-              schema: mediaTypeObject.schema,
-              example: mediaTypeObject.example,
-              examples: mediaTypeObject.examples,
-            },
-          ])
+          Object.entries(response.content).map(([mediaType, mediaTypeObject]) => {
+            const mediaObj = mediaTypeObject as any;
+            return [
+              mediaType,
+              {
+                schema: mediaObj.schema,
+                example: mediaObj.example,
+                examples: mediaObj.examples,
+              },
+            ];
+          })
         );
       }
 
@@ -200,7 +281,7 @@ export class SwaggerAnalyzer {
   /**
    * 提取请求体信息
    */
-  private extractRequestBody(operation: OpenAPIV3.OperationObject): RequestBody | undefined {
+  private extractRequestBody(operation: OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject): RequestBody | undefined {
     if (!operation.requestBody) {
       return undefined;
     }
@@ -218,14 +299,17 @@ export class SwaggerAnalyzer {
 
     if (operation.requestBody.content) {
       requestBody.content = Object.fromEntries(
-        Object.entries(operation.requestBody.content).map(([mediaType, mediaTypeObject]) => [
-          mediaType,
-          {
-            schema: mediaTypeObject.schema,
-            example: mediaTypeObject.example,
-            examples: mediaTypeObject.examples,
-          },
-        ])
+        Object.entries(operation.requestBody.content).map(([mediaType, mediaTypeObject]) => {
+          const mediaObj = mediaTypeObject as any;
+          return [
+            mediaType,
+            {
+              schema: mediaObj.schema,
+              example: mediaObj.example,
+              examples: mediaObj.examples,
+            },
+          ];
+        })
       );
     }
 

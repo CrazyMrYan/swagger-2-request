@@ -111,7 +111,7 @@ export class MockServer {
       res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
-        service: 'swagger-2-request-mock',
+        service: 's2r-mock',
         version: this.parsedSwagger.info.version,
         endpoints: this.parsedSwagger.paths.length,
       });

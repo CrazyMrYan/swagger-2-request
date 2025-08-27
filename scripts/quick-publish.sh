@@ -150,7 +150,7 @@ done
 
 # 主函数
 main() {
-    log_title "快速发布 - swagger-2-request"
+    log_title "快速发布 - S2R"
     
     # 检查依赖
     check_dependencies

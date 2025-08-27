@@ -1,11 +1,12 @@
-# Quick Start Guide
+# S2R - Quick Start Guide
 
 ## 概述
 
-swagger-2-request 是一个强大的工具，可以从 Swagger/OpenAPI 文档自动生成 TypeScript API 客户端代码，支持 Mock 服务、AI 友好文档转换和 NPM 包发布。
+s2r 是一个强大的工具，可以从 Swagger/OpenAPI 2.0-3.1 文档自动生成 TypeScript API 客户端代码，支持 Mock 服务、AI 友好文档转换和 NPM 包发布。
 
 ## 核心特性
 
+✅ **全面支持**: 支持 OpenAPI 2.0-3.1 所有版本  
 ✅ **自动代码生成**: 从 Swagger JSON 生成类型安全的 TypeScript API 客户端  
 ✅ **智能命名**: URL + HTTP Method 的命名规则 (如 `apiUsersGet`)  
 ✅ **参数过滤**: 基于 API 定义的自动参数验证和过滤  
@@ -18,10 +19,10 @@ swagger-2-request 是一个强大的工具，可以从 Swagger/OpenAPI 文档自
 
 ```bash
 # 全局安装 CLI
-npm install -g @yjh1102/swagger-2-request
+npm install -g s2r
 
 # 或者在项目中安装
-npm install --save-dev @yjh1102/swagger-2-request
+npm install --save-dev s2r
 ```
 
 ## 快速开始
@@ -446,7 +447,7 @@ jobs:
         with:
           node-version: '18'
       
-      - run: npm install -g @yjh1102/swagger-2-request
+      - run: npm install -g s2r
       - run: s2r generate --config swagger2request.config.js
       
       - name: Commit generated code
@@ -491,10 +492,10 @@ s2r mock ./swagger.json --port 3002
 
 ## 社区和支持
 
-- 📖 [完整文档](https://swagger-2-request.dev)
-- 🐛 [报告问题](https://github.com/swagger-2-request/swagger-2-request/issues)
-- 💬 [讨论区](https://github.com/swagger-2-request/swagger-2-request/discussions)
-- 📧 [邮件支持](mailto:support@swagger-2-request.dev)
+- 📖 [完整文档](https://s2r.dev)
+- 🐛 [报告问题](https://github.com/CrazyMrYan/s2r/issues)
+- 💬 [讨论区](https://github.com/CrazyMrYan/s2r/discussions)
+- 📧 [邮件支持](mailto:support@s2r.dev)
 
 ## 许可证
 
