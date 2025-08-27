@@ -1,0 +1,42 @@
+{
+  "name": "petstore-client-example",
+  "version": "1.0.0",
+  "description": "Complete example of using Swagger-2-Request with PetStore API",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "generate": "s2r generate ../petstore.json --output ./src/api",
+    "mock": "s2r mock ../petstore.json --port 3001",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "demo": "node demo.js",
+    "demo:quick": "node demo.js --quick"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "lodash-es": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/lodash-es": "^4.17.12",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "swagger-2-request": "file:../../"
+  },
+  "keywords": [
+    "swagger",
+    "api",
+    "typescript",
+    "axios",
+    "petstore"
+  ],
+  "author": "Swagger-2-Request",
+  "license": "MIT"
+}

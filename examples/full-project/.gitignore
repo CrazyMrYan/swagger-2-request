@@ -1,0 +1,58 @@
+# 依赖文件
+node_modules/
+*.pnp
+.pnp.js
+
+# 构建输出
+dist/
+build/
+*.tsbuildinfo
+
+# 测试覆盖率
+coverage/
+*.lcov
+
+# 环境变量
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 日志文件
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 生成的 API 文件（可选择性忽略）
+# src/api/
+
+# 临时文件
+*.tmp
+*.temp
+
+# 调试文件
+*.map

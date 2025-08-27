@@ -1,0 +1,91 @@
+{
+  "name": "swagger-2-request",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Generate TypeScript API clients from Swagger/OpenAPI documents with built-in axios, mock server, and AI-friendly documentation",
+  "keywords": [
+    "swagger",
+    "openapi",
+    "typescript",
+    "api-client",
+    "code-generator",
+    "mock-server",
+    "axios"
+  ],
+  "homepage": "https://swagger-2-request.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/swagger-2-request/swagger-2-request"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "bin": {
+    "s2r": "dist/cli.mjs",
+    "swagger-2-request": "dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup src/index.ts src/cli.ts --dts --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{ts,tsx,json,md}",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm run test && npm run lint",
+    "release": "semantic-release"
+  },
+  "dependencies": {
+    "@apidevtools/json-schema-ref-parser": "^14.2.0",
+    "axios": "^1.6.0",
+    "chalk": "4.1.2",
+    "commander": "^11.0.0",
+    "express": "^4.18.2",
+    "json-schema-faker": "^0.5.9",
+    "lodash-es": "^4.17.21",
+    "openapi-backend": "^5.15.0",
+    "openapi-types": "^12.1.3",
+    "ora": "^7.0.1",
+    "swagger-parser": "^10.0.3",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/lodash-es": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "@types/swagger-ui-express": "^4.1.6",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/coverage-v8": "^0.34.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "semantic-release": "^22.0.0",
+    "ts-morph": "^20.0.0",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.0",
+    "vitest": "^0.34.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/swagger-2-request"
+  }
+}

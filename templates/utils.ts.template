@@ -1,0 +1,82 @@
+/**
+ * 生成的 API 客户端工具函数
+ */
+
+import { pick, omit } from 'lodash-es';
+
+/**
+ * 根据 schema 过滤查询参数
+ * @param params 原始参数
+ * @param schema 参数 schema 定义
+ * @returns 过滤后的参数
+ */
+export function filterQueryParams(
+  params: Record<string, any>,
+  schema: any[]
+): Record<string, any> {
+  if (!params || !schema) return {};
+
+  const allowedKeys = schema.map(s => s.name);
+  const filtered = pick(params, allowedKeys);
+
+  // 移除 undefined 和 null 值
+  return Object.fromEntries(
+    Object.entries(filtered).filter(([_, value]) => 
+      value !== undefined && value !== null
+    )
+  );
+}
+
+/**
+ * 验证请求体数据
+ * @param data 请求数据
+ * @param schema 数据 schema
+ * @returns 验证后的数据
+ */
+export function validateRequestBody(data: any, schema: any): any {
+  // 简单验证，可以根据需要扩展
+  return data;
+}
+
+/**
+ * 处理 API 错误
+ * @param error 错误对象
+ * @returns 格式化的错误信息
+ */
+export function handleApiError(error: any): Error {
+  if (error.response) {
+    // 服务器响应错误
+    const message = error.response.data?.message || error.response.statusText || 'API request failed';
+    const apiError = new Error(message);
+    (apiError as any).status = error.response.status;
+    (apiError as any).data = error.response.data;
+    return apiError;
+  } else if (error.request) {
+    // 网络错误
+    return new Error('Network error: Unable to reach the server');
+  } else {
+    // 其他错误
+    return new Error(error.message || 'An unknown error occurred');
+  }
+}
+
+/**
+ * 创建查询字符串
+ * @param params 查询参数
+ * @returns 查询字符串
+ */
+export function createQueryString(params: Record<string, any>): string {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        value.forEach(v => searchParams.append(key, String(v)));
+      } else {
+        searchParams.append(key, String(value));
+      }
+    }
+  });
+  
+  return searchParams.toString();
+}
