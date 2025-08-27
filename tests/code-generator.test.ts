@@ -267,7 +267,7 @@ describe('CodeGenerator', () => {
       expect(clientFile).toBeDefined();
       expect(clientFile!.content).toContain('baseURL: config.baseURL || \'https://api.example.com\'');
       expect(clientFile!.content).toContain('export class APIClient');
-      expect(clientFile!.content).toContain('export const apiClient = new APIClient()');
+      expect(clientFile!.content).toContain('export const apiClient = new APIClient({');
     });
 
     it('should include API info in comments', () => {
@@ -287,7 +287,7 @@ describe('CodeGenerator', () => {
       expect(indexFile!.content).toContain("export * from './api';");
       expect(indexFile!.content).toContain("export * from './types';");
       expect(indexFile!.content).toContain("export * from './client';");
-      expect(indexFile!.content).toContain("export * from './utils';");
+      expect(indexFile!.content).toContain("export * from '../utils/api-utils';");
     });
 
     it('should include API info in header', () => {

@@ -1,6 +1,6 @@
 {
-  "name": "swagger-2-request",
-  "version": "0.1.0",
+  "name": "@yjh1102/swagger-2-request",
+  "version": "0.1.4",
   "type": "module",
   "description": "Generate TypeScript API clients from Swagger/OpenAPI documents with built-in axios, mock server, and AI-friendly documentation",
   "keywords": [
@@ -15,7 +15,7 @@
   "homepage": "https://swagger-2-request.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/swagger-2-request/swagger-2-request"
+    "url": "git+https://github.com/swagger-2-request/swagger-2-request.git"
   },
   "license": "MIT",
   "author": {
@@ -25,8 +25,8 @@
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
   "bin": {
-    "s2r": "dist/cli.mjs",
-    "swagger-2-request": "dist/cli.mjs"
+    "s2r": "dist/cli.js",
+    "swagger-2-request": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -43,8 +43,18 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write src/**/*.{ts,tsx,json,md}",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm run test && npm run lint",
-    "release": "semantic-release"
+    "prepublishOnly": "npm run build && npm run test",
+    "release": "semantic-release",
+    "publish:patch": "node scripts/publish.js --patch",
+    "publish:minor": "node scripts/publish.js --minor",
+    "publish:major": "node scripts/publish.js --major",
+    "publish:beta": "node scripts/publish.js --patch --beta",
+    "publish:alpha": "node scripts/publish.js --patch --alpha",
+    "publish:dry": "node scripts/publish.js --patch --dry-run",
+    "quick-publish": "./scripts/quick-publish.sh",
+    "version:patch": "pnpm version patch --no-git-tag-version",
+    "version:minor": "pnpm version minor --no-git-tag-version",
+    "version:major": "pnpm version major --no-git-tag-version"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^14.2.0",

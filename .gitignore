@@ -108,3 +108,8 @@ dist/
 test-package/
 test-output/
 generated/
+
+# Publishing temporary files
+.tmp/
+*.tgz
+.publish/

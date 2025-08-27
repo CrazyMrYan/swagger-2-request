@@ -6,10 +6,10 @@
 
 ```bash
 # 全局安装 CLI 工具
-npm install -g swagger-2-request
+npm install -g @yjh1102/swagger-2-request
 
 # 或者在项目中本地安装
-npm install --save-dev swagger-2-request
+npm install --save-dev @yjh1102/swagger-2-request
 ```
 
 ## 步骤 2: 生成 API 客户端

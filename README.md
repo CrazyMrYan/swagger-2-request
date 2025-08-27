@@ -18,10 +18,10 @@ swagger-2-request 是一个强大的工具，可以从 Swagger/OpenAPI 文档自
 
 ```bash
 # 全局安装 CLI
-npm install -g swagger-2-request
+npm install -g @yjh1102/swagger-2-request
 
 # 或者在项目中安装
-npm install --save-dev swagger-2-request
+npm install --save-dev @yjh1102/swagger-2-request
 ```
 
 ## 快速开始
@@ -446,7 +446,7 @@ jobs:
         with:
           node-version: '18'
       
-      - run: npm install -g swagger-2-request
+      - run: npm install -g @yjh1102/swagger-2-request
       - run: s2r generate --config swagger2request.config.js
       
       - name: Commit generated code
