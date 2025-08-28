@@ -273,7 +273,7 @@ export class CodeGenerator {
 
     // 导入语句
     lines.push("import { apiClient } from './client';");
-    lines.push("import { filterQueryParams, validateRequestBody, createRequestConfig } from '../utils/api-utils';");
+    lines.push("import { filterQueryParams, validateRequestBody, createRequestConfig } from './utils';");
     if (config.generateTypes) {
       lines.push("import type * as Types from './types';");
     }
@@ -410,7 +410,8 @@ export class CodeGenerator {
     // 查询参数
     const queryParams = endpoint.parameters.filter(p => p.in === 'query');
     if (queryParams.length > 0) {
-      lines.push('    params: params ? filterQueryParams(params, []) : undefined,');
+      const allowedKeys = queryParams.map(p => p.name);
+      lines.push(`    params: params ? filterQueryParams(params, ${JSON.stringify(allowedKeys)}) : undefined,`);
     }
 
     // 请求体
@@ -439,11 +440,9 @@ export class CodeGenerator {
       '/**',
       ` * API 客户端配置`,
       ` * Generated for: ${swagger.info.title} v${swagger.info.version}`,
-      ' * 支持拦截器系统、认证、重试等高级功能',
       ' */',
       '',
       "import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';",
-      "import { InterceptorManager, InterceptorConfig, interceptorPresets } from '../interceptors';",
       '',
       '/** API 客户端配置选项 */',
       'export interface APIClientConfig {',
@@ -453,10 +452,6 @@ export class CodeGenerator {
       '  timeout?: number;',
       '  /** 默认请求头 */',
       '  headers?: Record<string, string>;',
-      '  /** 拦截器配置 */',
-      '  interceptors?: InterceptorConfig;',
-      '  /** 使用预设拦截器配置 */',
-      '  preset?: "development" | "production" | "testing" | "minimal";',
       '  /** 是否启用默认错误处理 */',
       '  enableDefaultErrorHandling?: boolean;',
       '}',
@@ -464,7 +459,6 @@ export class CodeGenerator {
       '/** API 客户端类 */',
       'export class APIClient {',
       '  private instance: AxiosInstance;',
-      '  private interceptorManager: InterceptorManager;',
       '',
       '  constructor(config: APIClientConfig = {}) {',
       '    // 创建 Axios 实例',
@@ -478,33 +472,38 @@ export class CodeGenerator {
       '      },',
       '    });',
       '',
-      '    // 创建拦截器管理器',
-      '    this.interceptorManager = new InterceptorManager(this.instance);',
-      '',
-      '    // 应用拦截器配置',
-      '    this.setupInterceptors(config);',
+      '    // 设置默认拦截器',
+      '    if (config.enableDefaultErrorHandling !== false) {',
+      '      this.setupDefaultInterceptors();',
+      '    }',
       '  }',
       '',
       '  /**',
-      '   * 设置拦截器',
+      '   * 设置默认拦截器',
       '   */',
-      '  private setupInterceptors(config: APIClientConfig): void {',
-      '    let interceptorConfig: InterceptorConfig | undefined;',
+      '  private setupDefaultInterceptors(): void {',
+      '    // 请求拦截器',
+      '    this.instance.interceptors.request.use(',
+      '      (config) => {',
+      '        // 可以在这里添加请求拦截逻辑',
+      '        return config;',
+      '      },',
+      '      (error) => Promise.reject(error)',
+      '    );',
       '',
-      '    // 使用预设配置',
-      '    if (config.preset) {',
-      '      interceptorConfig = interceptorPresets[config.preset];',
-      '    }',
-      '',
-      '    // 使用自定义配置',
-      '    if (config.interceptors) {',
-      '      interceptorConfig = config.interceptors;',
-      '    }',
-      '',
-      '    // 注册拦截器',
-      '    if (interceptorConfig) {',
-      '      this.interceptorManager.register(interceptorConfig);',
-      '    }',
+      '    // 响应拦截器',
+      '    this.instance.interceptors.response.use(',
+      '      (response) => response,',
+      '      (error) => {',
+      '        // 简单的错误处理',
+      '        const errorMessage = error.response?.data?.message ||',
+      '                            error.response?.statusText ||',
+      '                            error.message ||',
+      '                            \'API request failed\';',
+      '        console.error(\'API Error:\', errorMessage);',
+      '        return Promise.reject(error);',
+      '      }',
+      '    );',
       '  }',
       '',
       '  /**',
@@ -525,13 +524,6 @@ export class CodeGenerator {
       '   */',
       '  getInstance(): AxiosInstance {',
       '    return this.instance;',
-      '  }',
-      '',
-      '  /**',
-      '   * 获取拦截器管理器',
-      '   */',
-      '  getInterceptorManager(): InterceptorManager {',
-      '    return this.interceptorManager;',
       '  }',
       '',
       '  /**',
@@ -564,9 +556,12 @@ export class CodeGenerator {
       '}',
       '',
       '/** 默认 API 客户端实例 */',
-      'export const apiClient = new APIClient({',
-      '  preset: process.env.NODE_ENV === "development" ? "development" : "production",',
-      '});'
+      'export const apiClient = new APIClient();',
+      '',
+      '/** 创建新的 API 客户端实例 */',
+      'export function createAPIClient(config?: APIClientConfig): APIClient {',
+      '  return new APIClient(config);',
+      '}'
     ];
 
     return {
@@ -611,10 +606,7 @@ export class CodeGenerator {
     lines.push("export * from './client';");
     lines.push("");
     lines.push("// 工具函数");
-    lines.push("export * from '../utils/api-utils';");
-    lines.push("");
-    lines.push("// 拦截器系统");
-    lines.push("export * from '../interceptors';");
+    lines.push("export * from './utils';");
 
     return {
       path: 'index.ts',

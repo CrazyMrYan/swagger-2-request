@@ -44,7 +44,7 @@ s2r generate --config ./swagger2request.config.js
 
 ```typescript
 import { apiUsersGet, apiUsersPost } from './src/api';
-import type { User, CreateUserRequest } from './src/api/types';
+import type { User, CreateUserRequest } from './src/api';
 
 // GET /api/users
 const users = await apiUsersGet({ 
@@ -188,12 +188,9 @@ module.exports = {
 src/api/
 ├── index.ts           # 主入口文件
 ├── types.ts           # TypeScript 类型定义
+├── api.ts             # API 函数
 ├── client.ts          # API 客户端配置
-├── endpoints/         # API 端点函数
-│   ├── users.ts
-│   ├── auth.ts
-│   └── products.ts
-└── config.ts          # 运行时配置
+└── utils.ts           # 工具函数
 ```
 
 ### 生成代码示例
@@ -222,28 +219,30 @@ export interface UsersGetParams {
 }
 ```
 
-#### endpoints/users.ts
+#### api.ts
 ```typescript
-import { apiClient } from '../client';
-import { filterQueryParams, validateRequestBody } from '../utils';
-import type { User, CreateUserRequest, UsersGetParams } from '../types';
+import { apiClient } from './client';
+import { filterQueryParams, validateRequestBody, createRequestConfig } from './utils';
+import type * as Types from './types';
 
 /**
  * Get list of users
  * GET /api/users
  */
 export async function apiUsersGet(
-  params?: UsersGetParams,
-  options?: RequestOptions
-): Promise<User[]> {
+  params?: Types.ApiUsersGetParams,
+  options?: Types.RequestOptions
+): Promise<Types.ApiUsersGetResponse> {
+  const url = '/api/users';
+
   const config = {
     method: 'GET' as const,
-    url: '/api/users',
-    params: filterQueryParams(params, queryParamsSchema),
-    ...options
+    url,
+    params: params ? filterQueryParams(params, ['page', 'limit', 'search', 'status']) : undefined,
+    ...options,
   };
-  
-  const response = await apiClient.request<User[]>(config);
+
+  const response = await apiClient.request(config);
   return response.data;
 }
 
@@ -252,17 +251,19 @@ export async function apiUsersGet(
  * POST /api/users
  */
 export async function apiUsersPost(
-  data: CreateUserRequest,
-  options?: RequestOptions
-): Promise<User> {
+  data: Types.ApiUsersPostRequest,
+  options?: Types.RequestOptions
+): Promise<Types.ApiUsersPostResponse> {
+  const url = '/api/users';
+
   const config = {
     method: 'POST' as const,
-    url: '/api/users',
-    data: validateRequestBody(data, requestBodySchema),
-    ...options
+    url,
+    data,
+    ...options,
   };
-  
-  const response = await apiClient.request<User>(config);
+
+  const response = await apiClient.request(config);
   return response.data;
 }
 
@@ -272,15 +273,17 @@ export async function apiUsersPost(
  */
 export async function apiUsersIdGet(
   id: number,
-  options?: RequestOptions
-): Promise<User> {
+  options?: Types.RequestOptions
+): Promise<Types.ApiUsersIdGetResponse> {
+  const url = `/api/users/${id}`;
+
   const config = {
     method: 'GET' as const,
-    url: `/api/users/${id}`,
-    ...options
+    url,
+    ...options,
   };
-  
-  const response = await apiClient.request<User>(config);
+
+  const response = await apiClient.request(config);
   return response.data;
 }
 ```

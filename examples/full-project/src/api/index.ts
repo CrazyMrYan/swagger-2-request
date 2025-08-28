@@ -29,48 +29,13 @@ export {
   type APIClientConfig,
 } from './client.js';
 
-// 导出拦截器系统
-export {
-  // 拦截器类型
-  type RequestInterceptor,
-  type ResponseInterceptor,
-  type InterceptorConfig,
-  type AuthConfig,
-  type RetryConfig,
-  type LogConfig,
-  type ErrorHandlerConfig,
-  
-  // 拦截器工厂函数
-  createAuthInterceptor,
-  createRetryInterceptor,
-  createLogInterceptors,
-  createErrorHandlerInterceptor,
-  
-  // 预设配置
-  interceptorPresets,
-  retryPresets,
-  errorHandlerPresets,
-  
-  // 管理器
-  globalAuthManager,
-  InterceptorManager,
-  AuthManager,
-  RetryManager,
-  ErrorHandlerManager,
-  
-  // 便利函数
-  createInterceptorConfig,
-  createAuthManager,
-  createRetryManager,
-  createErrorHandlerManager,
-} from './interceptors.js';
-
 // 导出工具函数
 export {
-  formatErrorMessage,
-  validateRequestData,
-  transformResponse,
-  // ... 其他工具函数
+  filterQueryParams,
+  validateRequestBody,
+  createRequestConfig,
+  handleApiError,
+  createQueryString,
 } from './utils.js';
 
 // 默认导出主要功能
@@ -89,13 +54,13 @@ export default {
     apiClient,
   },
   
-  // 拦截器
-  interceptors: {
-    createAuthInterceptor,
-    createRetryInterceptor,
-    createLogInterceptors,
-    createErrorHandlerInterceptor,
-    interceptorPresets,
+  // 工具函数
+  utils: {
+    filterQueryParams,
+    validateRequestBody,
+    createRequestConfig,
+    handleApiError,
+    createQueryString,
   },
 };
 
@@ -150,14 +115,21 @@ export class APIClient {
     console.log('设置请求头', name, value);
   }
   
-  get(url: string, config?: any) {
-    console.log('GET 请求', url);
-    return Promise.resolve({ data: {} });
+  setBaseURL(baseURL: string) {
+    console.log('设置基础 URL', baseURL);
   }
   
-  post(url: string, data?: any, config?: any) {
-    console.log('POST 请求', url, data);
-    return Promise.resolve({ data: {} });
+  setTimeout(timeout: number) {
+    console.log('设置超时时间', timeout);
+  }
+  
+  async request(config: any) {
+    console.log('发送请求', config);
+    return { data: {}, status: 200, statusText: 'OK', headers: {} };
+  }
+  
+  getInstance() {
+    return this;
   }
 }
 
@@ -167,139 +139,46 @@ export function createAPIClient(config?: any): APIClient {
 
 export const apiClient = new APIClient();
 
-// 模拟的拦截器预设
-export const interceptorPresets = {
-  development: { request: [], response: [] },
-  production: { request: [], response: [] },
-  testing: { request: [], response: [] },
-  minimal: { request: [], response: [] },
-};
-
-// 模拟的拦截器创建函数
-export function createAuthInterceptor(config: any) {
-  return { name: 'auth', priority: 10, onRequest: (cfg: any) => cfg };
-}
-
-export function createRetryInterceptor(config: any) {
-  return { name: 'retry', priority: 20, onResponseError: (error: any) => Promise.reject(error) };
-}
-
-export function createLogInterceptors(config: any) {
-  return {
-    request: { name: 'request-log', onRequest: (cfg: any) => cfg },
-    response: { name: 'response-log', onResponse: (res: any) => res }
-  };
-}
-
-export function createErrorHandlerInterceptor(config: any) {
-  return { name: 'error-handler', onResponseError: (error: any) => Promise.reject(error) };
-}
-
-// 模拟的全局认证管理器
-export const globalAuthManager = {
-  setBearerToken: (token: string) => console.log('设置 Bearer Token', token),
-  setApiKey: (key: string, value: string) => console.log('设置 API Key', key, value),
-  createDynamicAuthInterceptor: () => createAuthInterceptor({}),
-};
-
-// 模拟的管理器类
-export class InterceptorManager {
-  addRequestInterceptor(interceptor: any) {
-    console.log('添加请求拦截器', interceptor.name);
-  }
-  
-  addResponseInterceptor(interceptor: any) {
-    console.log('添加响应拦截器', interceptor.name);
-  }
-  
-  removeInterceptor(name: string) {
-    console.log('移除拦截器', name);
-  }
-  
-  getStats() {
-    return { requestInterceptors: 0, responseInterceptors: 0 };
-  }
-}
-
-export class AuthManager {
-  setAuth(config: any) {
-    console.log('设置认证配置', config);
-  }
-  
-  createInterceptor() {
-    return createAuthInterceptor({});
-  }
-}
-
-export class RetryManager {
-  constructor(config: any) {
-    console.log('创建重试管理器', config);
-  }
-  
-  updateConfig(config: any) {
-    console.log('更新重试配置', config);
-  }
-  
-  createInterceptor() {
-    return createRetryInterceptor({});
-  }
-}
-
-export class ErrorHandlerManager {
-  constructor(config?: any) {
-    console.log('创建错误处理管理器', config);
-  }
-  
-  getErrorStats() {
-    return { totalErrors: 0, errorsByType: {} };
-  }
-  
-  isRecoverableError(error: any) {
-    return false;
-  }
-}
-
-// 便利函数
-export function createInterceptorConfig(options: any) {
-  return { request: [], response: [] };
-}
-
-export function createAuthManager(config?: any) {
-  return new AuthManager();
-}
-
-export function createRetryManager(config: any) {
-  return new RetryManager(config);
-}
-
-export function createErrorHandlerManager(config?: any) {
-  return new ErrorHandlerManager(config);
-}
-
-// 预设配置
-export const retryPresets = {
-  conservative: { maxRetries: 2, delay: 1000 },
-  aggressive: { maxRetries: 5, delay: 500 },
-  fast: { maxRetries: 3, delay: 200 },
-  disabled: { maxRetries: 0, delay: 0 },
-};
-
-export const errorHandlerPresets = {
-  development: { enableTransform: true, enableNotification: true },
-  production: { enableTransform: true, enableNotification: false },
-  testing: { enableTransform: true, enableNotification: true },
-  silent: { enableTransform: false, enableNotification: false },
-};
-
 // 工具函数
-export function formatErrorMessage(error: any): string {
-  return error?.message || '未知错误';
+export function filterQueryParams(params: Record<string, any>, allowedKeys: string[] = []): Record<string, any> {
+  if (!params) return {};
+  
+  let filtered = params;
+  if (allowedKeys.length > 0) {
+    const result: Record<string, any> = {};
+    allowedKeys.forEach(key => {
+      if (key in params) {
+        result[key] = params[key];
+      }
+    });
+    filtered = result;
+  }
+  
+  return Object.fromEntries(
+    Object.entries(filtered).filter(([, value]) => 
+      value !== undefined && value !== null
+    )
+  );
 }
 
-export function validateRequestData(data: any): boolean {
-  return data != null;
+export function validateRequestBody(data: any): any {
+  return data;
 }
 
-export function transformResponse(response: any): any {
-  return response?.data || response;
+export function createRequestConfig(method: string, url: string, options: any = {}): any {
+  return { method: method.toUpperCase(), url, ...options };
+}
+
+export function handleApiError(error: any): Error {
+  return new Error(error?.message || 'API Error');
+}
+
+export function createQueryString(params: Record<string, any>): string {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, String(value));
+    }
+  });
+  return searchParams.toString();
 }

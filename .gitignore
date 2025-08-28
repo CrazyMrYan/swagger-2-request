@@ -114,3 +114,4 @@ generated/
 *.tgz
 .publish/
 /docs/.vitepress/cache
+.vitepress/cache
