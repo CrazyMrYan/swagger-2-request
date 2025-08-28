@@ -45,7 +45,28 @@ export class MockServer {
   async start(swaggerSource: string | OpenAPIV3.Document): Promise<void> {
     // 解析 Swagger 文档
     this.parsedSwagger = await this.analyzer.parseSwagger(swaggerSource);
-    this.swagger = swaggerSource as OpenAPIV3.Document;
+    
+    // 获取原始 Swagger 文档对象
+    let originalSwagger: any;
+    if (typeof swaggerSource === 'string') {
+      if (swaggerSource.startsWith('http')) {
+        // 从 URL 获取
+        const response = await fetch(swaggerSource);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch from ${swaggerSource}: ${response.statusText}`);
+        }
+        originalSwagger = await response.json();
+      } else {
+        // 从文件路径读取
+        const fs = await import('fs/promises');
+        const content = await fs.readFile(swaggerSource, 'utf-8');
+        originalSwagger = JSON.parse(content);
+      }
+    } else {
+      originalSwagger = swaggerSource;
+    }
+    
+    this.swagger = originalSwagger;
 
     // 设置路由
     this.setupRoutes();

@@ -67,8 +67,13 @@ export class SwaggerAnalyzer {
         console.log('🔄 Using swagger-parser for OpenAPI 3.0');
         const parser = SwaggerParser as any;
         this.schema = (await parser.dereference(apiDoc)) as OpenAPIDocument;
+      } else if (version.startsWith('2.0')) {
+        // 使用 swagger-parser 处理 Swagger 2.0
+        console.log('🔄 Using swagger-parser for Swagger 2.0');
+        const parser = SwaggerParser as any;
+        this.schema = (await parser.dereference(apiDoc)) as OpenAPIDocument;
       } else {
-        throw new Error(`Unsupported OpenAPI version: ${version}. Supported versions: 3.0.x, 3.1.x`);
+        throw new Error(`Unsupported OpenAPI version: ${version}. Supported versions: 2.0, 3.0.x, 3.1.x`);
       }
       
       return this.transformSchema();
@@ -114,8 +119,8 @@ export class SwaggerAnalyzer {
           throw new Error(`Validation failed: ${JSON.stringify(result.errors)}`);
         }
         return true;
-      } else if (version.startsWith('3.0')) {
-        // 使用 swagger-parser 验证 3.0
+      } else if (version.startsWith('3.0') || version.startsWith('2.0')) {
+        // 使用 swagger-parser 验证 3.0 和 2.0
         const parser = SwaggerParser as any;
         await parser.validate(apiDoc);
         return true;
@@ -141,7 +146,26 @@ export class SwaggerAnalyzer {
   private transformSchema(): ParsedSwagger {
     const paths = this.extractPaths();
     const components = this.extractComponents();
-    const servers = this.schema.servers || [];
+    
+    // 处理 servers 字段，Swagger 2.0 使用 host + basePath
+    let servers: Array<{ url: string; description?: string }> = [];
+    
+    if (this.schema.servers) {
+      // OpenAPI 3.x 格式
+      servers = this.schema.servers.map(server => ({
+        url: server.url,
+        description: server.description,
+      }));
+    } else {
+      // Swagger 2.0 格式，构建 servers 列表
+      const swagger2Schema = this.schema as any;
+      if (swagger2Schema.host) {
+        const protocol = (swagger2Schema.schemes && swagger2Schema.schemes[0]) || 'https';
+        const basePath = swagger2Schema.basePath || '';
+        const url = `${protocol}://${swagger2Schema.host}${basePath}`;
+        servers = [{ url, description: 'Swagger 2.0 API server' }];
+      }
+    }
 
     return {
       info: {
@@ -151,10 +175,7 @@ export class SwaggerAnalyzer {
       },
       paths,
       components,
-      servers: servers.map(server => ({
-        url: server.url,
-        description: server.description,
-      })),
+      servers,
     };
   }
 
@@ -321,11 +342,18 @@ export class SwaggerAnalyzer {
    */
   private extractComponents() {
     const components = this.schema.components || {};
+    const swagger2Schema = this.schema as any;
+    
+    // 处理 Swagger 2.0 的 definitions
+    let schemas = components.schemas || {};
+    if (swagger2Schema.definitions) {
+      schemas = swagger2Schema.definitions;
+    }
 
     return {
-      schemas: components.schemas || {},
-      responses: components.responses || {},
-      parameters: components.parameters || {},
+      schemas,
+      responses: components.responses || swagger2Schema.responses || {},
+      parameters: components.parameters || swagger2Schema.parameters || {},
       requestBodies: components.requestBodies || {},
     };
   }
