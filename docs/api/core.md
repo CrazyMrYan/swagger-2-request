@@ -1,10 +1,32 @@
 # 核心 API 参考
 
-S2R 的核心 API 提供了完整的 Swagger/OpenAPI 文档解析和代码生成功能。
+S2R 的核心 API 提供了完整的 Swagger/OpenAPI 文档解析和代码生成功能。本文档介绍如何在代码中使用 S2R 的核心功能。
+
+## 主要模块导入
+
+```typescript
+// 从 s2r 包导入核心功能
+import {
+  SwaggerAnalyzer,     // Swagger 文档解析器
+  CodeGenerator,       // TypeScript 代码生成器
+  MockServer,          // Mock 服务器
+  NamingStrategy,      // 命名策略
+  VERSION,             // 版本信息
+  DEFAULT_CONFIG       // 默认配置
+} from 's2r';
+
+// 导入类型定义
+import type {
+  ParsedSwagger,
+  GenerationConfig,
+  MockServerOptions,
+  APIEndpoint
+} from 's2r';
+```
 
 ## SwaggerAnalyzer
 
-Swagger 文档解析器，支持 OpenAPI 2.0-3.1 所有版本。
+Swagger 文档解析器，支持 OpenAPI 2.0-3.1 所有版本，实现智能版本检测和自动选择合适的解析器。
 
 ### 构造函数
 
@@ -16,7 +38,7 @@ const analyzer = new SwaggerAnalyzer();
 
 #### parseSwagger(source)
 
-解析 Swagger/OpenAPI 文档。
+解析 Swagger/OpenAPI 文档，支持多种数据源和版本。
 
 **参数:**
 - `source: string | OpenAPIDocument` - Swagger 文档路径、URL 或对象
@@ -26,14 +48,17 @@ const analyzer = new SwaggerAnalyzer();
 
 **示例:**
 ```typescript
-// 从 URL 解析
-const swagger = await analyzer.parseSwagger('https://api.example.com/swagger.json');
+// 从 URL 解析（支持 OpenAPI 3.1）
+const swagger = await analyzer.parseSwagger('https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs');
 
 // 从本地文件解析
 const swagger = await analyzer.parseSwagger('./swagger.json');
 
 // 从对象解析
 const swagger = await analyzer.parseSwagger(swaggerObject);
+
+// 自动版本检测和解析器选择
+console.log('检测到版本:', swagger.info.version);
 ```
 
 #### detectVersion(document)
@@ -54,7 +79,7 @@ console.log('OpenAPI 版本:', version); // '3.1'
 
 ## CodeGenerator
 
-TypeScript 代码生成器。
+TypeScript 代码生成器，生成类型安全的 API 客户端代码，遵循 API 函数命名规范。
 
 ### 构造函数
 
@@ -66,7 +91,7 @@ const generator = new CodeGenerator();
 
 #### generateAPIClient(swagger, config)
 
-生成 API 客户端代码。
+生成完整的 API 客户端代码，包括类型定义、API 函数、客户端配置和工具函数。
 
 **参数:**
 - `swagger: ParsedSwagger` - 解析后的 Swagger 文档
@@ -77,14 +102,21 @@ const generator = new CodeGenerator();
 
 **示例:**
 ```typescript
+// 基本使用
 const files = generator.generateAPIClient(swagger, {
   outputDir: './src/api',
   typescript: true,
-  functionNaming: 'pathMethod',
+  functionNaming: 'pathMethod',  // 重要：使用路径+方法命名
   includeComments: true,
   generateTypes: true,
   cleanOutput: true
 });
+
+// 生成的函数命名示例：
+// GET /api/users -> apiUsersGet
+// POST /api/users -> apiUsersPost  
+// GET /api/users/{id} -> apiUsersIdGet
+// PUT /api/users/{id} -> apiUsersIdPut
 
 // 写入文件
 for (const file of files) {

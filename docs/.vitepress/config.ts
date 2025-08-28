@@ -26,7 +26,7 @@ export default defineConfig({
             { text: '快速开始', link: '/guide/getting-started' },
             { text: '安装配置', link: '/guide/installation' },
             { text: '基本用法', link: '/guide/basic-usage' },
-            { text: '配置文件', link: '/guide/configuration' },
+            { text: '配置指南', link: '/guide/configuration' },
             { text: 'CLI 命令', link: '/guide/cli-commands' },
           ]
         }

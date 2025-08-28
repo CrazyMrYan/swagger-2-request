@@ -7,7 +7,14 @@
 ### 全局安装 CLI
 
 ```bash
+# 使用 npm
 npm install -g s2r
+
+# 使用 pnpm（推荐）
+pnpm add -g s2r
+
+# 使用 yarn
+yarn global add s2r
 ```
 
 ### 在项目中安装
@@ -16,39 +23,69 @@ npm install -g s2r
 # npm
 npm install --save-dev s2r
 
-# pnpm
+# pnpm（推荐）
 pnpm add -D s2r
 
 # yarn
 yarn add -D s2r
 ```
 
-## 生成第一个 API 客户端
-
-### 1. 使用公开的 Swagger 文档
+### 验证安装
 
 ```bash
-# 使用 Petstore 示例 API
+# 检查版本
+s2r --version
+
+# 查看帮助
+s2r --help
+```
+
+## 生成第一个 API 客户端
+
+### 1. 使用测试 API 文档
+
+```bash
+# 使用项目测试 API（支持 OpenAPI 3.1）
+s2r generate https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs --output ./src/api
+
+# 使用 Petstore 示例 API（OpenAPI 2.0）
 s2r generate https://petstore.swagger.io/v2/swagger.json --output ./src/api
 ```
 
 ### 2. 使用本地 Swagger 文件
 
 ```bash
+# 从本地文件生成
 s2r generate ./swagger.json --output ./src/api
+
+# 使用配置文件
+s2r generate ./swagger.json --config ./s2r.config.js
 ```
 
-### 3. 生成结果
+### 3. CLI 命令参数
+
+```bash
+# 清理输出目录
+s2r generate ./swagger.json --output ./src/api --clean
+
+# 仅生成类型定义
+s2r generate ./swagger.json --output ./src/api --types-only
+
+# 启用详细日志
+s2r generate ./swagger.json --output ./src/api --verbose
+```
+
+### 4. 生成结果
 
 生成后的目录结构：
 
 ```
 src/api/
-├── index.ts          # 主入口文件
+├── index.ts          # 主入口文件，导出所有 API 函数
 ├── types.ts          # TypeScript 类型定义
 ├── api.ts            # API 函数实现
-├── client.ts         # API 客户端配置
-└── utils.ts          # 工具函数
+├── client.ts         # API 客户端配置和拦截器
+└── utils.ts          # 工具函数（参数过滤、错误处理等）
 ```
 
 ## 使用生成的代码
@@ -56,15 +93,24 @@ src/api/
 ### 基础用法
 
 ```typescript
-import { petGet, petPost, storeInventoryGet } from './src/api';
-import type { Pet, ApiResponse } from './src/api/types';
+// 导入 API 函数（基于路径 + HTTP 方法命名）
+import { 
+  petPetIdGet,        // GET /pet/{petId}
+  petPost,            // POST /pet
+  petPut,             // PUT /pet
+  storeInventoryGet,  // GET /store/inventory
+  userUsernameGet     // GET /user/{username}
+} from './src/api';
+
+// 导入类型定义
+import type { Pet, User, Order, ApiResponse } from './src/api/types';
 
 // 获取宠物信息
-const pet = await petGet('123');
+const pet = await petPetIdGet('123');
 
 // 创建新宠物
 const newPet: Pet = {
-  id: 1,
+  id: 0,
   name: 'fluffy',
   category: { id: 1, name: 'Dogs' },
   photoUrls: ['https://example.com/photo.jpg'],
@@ -154,20 +200,32 @@ s2r generate ./swagger.json --output ./src/api --verbose
 
 ### 使用配置文件
 
-创建 `s2r.config.js`：
+创建 `swagger2request.config.js`：
 
 ```javascript
-export default {
+module.exports = {
+  // Swagger 源配置
   swagger: {
-    source: './swagger.json'
+    source: './swagger.json', // 支持文件路径或 URL
+    version: '3.0.0'
   },
+
+  // 代码生成配置
   generation: {
     outputDir: './src/api',
     typescript: true,
-    functionNaming: 'pathMethod',
+    functionNaming: 'pathMethod', // pathMethod | operationId
     includeComments: true,
     generateTypes: true,
     cleanOutput: true
+  },
+
+  // 运行时配置
+  runtime: {
+    baseURL: process.env.API_BASE_URL || 'https://api.example.com',
+    timeout: 10000,
+    validateParams: true,
+    filterParams: true
   }
 };
 ```
@@ -175,7 +233,7 @@ export default {
 然后运行：
 
 ```bash
-s2r generate --config ./s2r.config.js
+s2r generate --config ./swagger2request.config.js
 ```
 
 ## 常见问题

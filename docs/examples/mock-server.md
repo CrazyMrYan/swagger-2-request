@@ -1,563 +1,512 @@
-# Mock 服务器
+# Mock 服务器使用指南
 
-S2R 内置了强大的 Mock 服务器功能，集成 Swagger UI，支持自定义响应和延迟模拟，是前端开发和API测试的理想工具。
+S2R 提供了功能强大的 Mock 服务器，集成 Swagger UI，支持自定义响应、CORS 跨域和智能数据生成。
 
-## 快速开始
+## 基本用法
 
-### 启动基础 Mock 服务器
+### 启动 Mock 服务器
 
 ```bash
-# 从本地文件启动
+# 基本启动
 s2r mock ./swagger.json
-
-# 从 URL 启动
-s2r mock https://petstore.swagger.io/v2/swagger.json
 
 # 指定端口
 s2r mock ./swagger.json --port 3001
 
-# 添加响应延迟
-s2r mock ./swagger.json --port 3001 --delay 500
-```
-
-### 启动后的功能
-
-启动成功后，您可以访问：
-
-- **API 端点**: `http://localhost:3001/api/*`
-- **Swagger UI**: `http://localhost:3001/docs`
-- **健康检查**: `http://localhost:3001/health`
-- **API 信息**: `http://localhost:3001/api-info`
-
-## 命令行选项
-
-### 基础选项
-
-```bash
-s2r mock <swagger-source> [options]
-```
-
-**参数:**
-- `<swagger-source>` - Swagger 文档路径或 URL
-
-**选项:**
-- `-p, --port <number>` - 服务器端口 (默认: 3001)
-- `-d, --delay <number>` - 响应延迟 (ms, 默认: 0)
-- `--no-ui` - 禁用 Swagger UI
-- `-c, --config <file>` - 配置文件路径
-- `--verbose` - 启用详细日志
-
-### 示例命令
-
-```bash
-# 启用详细日志
-s2r mock ./swagger.json --verbose
+# 添加响应延迟（模拟网络延迟）
+s2r mock ./swagger.json --delay 500
 
 # 禁用 Swagger UI
 s2r mock ./swagger.json --no-ui
 
 # 使用配置文件
-s2r mock --config ./mock.config.js
-
-# 添加 500ms 延迟模拟慢网络
-s2r mock ./swagger.json --delay 500
+s2r mock --config ./swagger2request.config.js
 ```
 
-## 配置文件
+### 从 URL 启动
 
-### 创建配置文件
+```bash
+# 使用项目测试 API（OpenAPI 3.1）
+s2r mock https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs --port 3001
 
-创建 `mock.config.js`：
+# 使用 Petstore API（OpenAPI 2.0）
+s2r mock https://petstore.swagger.io/v2/swagger.json --port 3001
+```
+
+## 访问地址
+
+Mock 服务器启动后，您可以访问以下地址：
+
+| 功能 | 地址 | 说明 |
+|------|------|------|
+| **API 端点** | `http://localhost:3001/*` | 所有 API 端点 |
+| **Swagger UI** | `http://localhost:3001/docs` | 可视化 API 文档和测试界面 |
+| **健康检查** | `http://localhost:3001/health` | 服务器状态检查 |
+| **API 信息** | `http://localhost:3001/api-info` | API 基本信息 |
+| **根路径** | `http://localhost:3001/` | 自动重定向到 `/docs` |
+
+## 配置选项
+
+### 在配置文件中配置 Mock 服务
 
 ```javascript
-export default {
-  // Swagger 文档源
-  source: './swagger.json',
-  
-  // 服务器配置
-  server: {
-    port: 3001,
-    delay: 200,
-    cors: true
-  },
-  
-  // UI 配置
-  ui: {
-    enabled: true,
-    title: 'My API Mock Server',
-    description: '用于开发和测试的 Mock 服务器'
-  },
-  
-  // 自定义响应
-  customResponses: {
-    'GET /pet/1': {
-      status: 200,
-      data: {
-        id: 1,
-        name: 'Custom Pet',
-        status: 'available'
-      }
+// swagger2request.config.js
+module.exports = {
+  // Mock 服务配置
+  mock: {
+    enabled: true,                    // 启用 Mock 服务
+    port: 3001,                       // 服务端口
+    delay: 200,                       // 响应延迟（毫秒）
+    ui: true,                         // 启用 Swagger UI
+    uiPath: '/docs',                  // Swagger UI 路径
+
+    // CORS 配置
+    cors: {
+      enabled: true,                  // 启用 CORS
+      origin: '*',                    // 允许的来源
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      headers: ['Content-Type', 'Authorization']
     },
-    'POST /pet': {
-      status: 201,
-      data: {
-        id: 123,
-        name: 'New Pet',
-        status: 'available'
-      }
+
+    // 自定义响应配置
+    customResponses: './mock/custom-responses.json',
+
+    // 健康检查配置
+    healthCheck: {
+      enabled: true,
+      path: '/health'
     }
-  },
-  
-  // 日志配置
-  logging: {
-    enabled: true,
-    level: 'info'
   }
 };
 ```
 
-### 使用配置文件
+### 响应延迟设置
 
 ```bash
-s2r mock --config ./mock.config.js
+# 无延迟（默认）
+s2r mock ./swagger.json --delay 0
+
+# 模拟快速网络（100ms）
+s2r mock ./swagger.json --delay 100
+
+# 模拟普通网络（500ms）
+s2r mock ./swagger.json --delay 500
+
+# 模拟慢速网络（2秒）
+s2r mock ./swagger.json --delay 2000
 ```
 
-## Swagger UI 集成
+## Swagger UI 功能
 
-### 访问 Swagger UI
+Mock 服务器集成了完整的 Swagger UI，提供以下功能：
 
-启动 Mock 服务器后，访问 `http://localhost:3001/docs` 查看交互式 API 文档。
+### 特性
 
-### Swagger UI 功能
+- 📖 **可视化文档**: 清晰的 API 文档展示
+- 🧪 **在线测试**: 直接在浏览器中测试 API
+- 🔍 **API 搜索**: 快速查找特定的 API 端点
+- 📊 **Schema 查看**: 查看请求和响应数据结构
+- 🎛️ **参数配置**: 可视化参数输入界面
 
-- **接口测试**: 直接在浏览器中测试 API
-- **参数输入**: 可视化的参数输入界面
-- **响应查看**: 实时查看 API 响应
-- **模型展示**: 自动展示数据模型结构
-- **认证测试**: 支持各种认证方式测试
+### 访问和使用
+
+1. 启动 Mock 服务器后，访问 `http://localhost:3001/docs`
+2. 浏览 API 端点列表
+3. 点击任意端点查看详细信息
+4. 点击 "Try it out" 按钮测试 API
+5. 输入参数并点击 "Execute" 执行请求
 
 ### 自定义 Swagger UI
 
 ```javascript
-// mock.config.js
-export default {
-  ui: {
-    enabled: true,
-    title: 'My API Documentation',
-    customCSS: `
-      .swagger-ui .topbar { 
-        background-color: #1976d2; 
-      }
-      .swagger-ui .info .title {
-        color: #1976d2;
-      }
-    `,
+// 在配置文件中自定义 UI
+mock: {
+  ui: true,
+  uiOptions: {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'My API Documentation',
     swaggerOptions: {
-      defaultModelsExpandDepth: 2,
-      defaultModelExpandDepth: 2,
+      defaultModelsExpandDepth: 1,
+      defaultModelExpandDepth: 1,
       docExpansion: 'list',
-      filter: true,
-      showRequestHeaders: true
-    }
-  }
-};
-```
-
-## 自动 Mock 数据生成
-
-### 智能数据生成
-
-S2R 会根据 Swagger 定义自动生成 Mock 数据：
-
-```json
-// Swagger 定义
-{
-  "type": "object",
-  "properties": {
-    "id": { "type": "integer", "example": 1 },
-    "name": { "type": "string", "example": "fluffy" },
-    "status": { 
-      "type": "string", 
-      "enum": ["available", "pending", "sold"] 
-    },
-    "createdAt": { 
-      "type": "string", 
-      "format": "date-time" 
+      filter: true
     }
   }
 }
 ```
 
+## 数据生成
+
+Mock 服务器根据 API 定义智能生成符合规范的测试数据。
+
+### 自动数据生成规则
+
+| 数据类型 | 生成规则 | 示例 |
+|----------|----------|------|
+| **字符串** | 随机字符串 | `"sample string"` |
+| **数字** | 随机数字 | `42` |
+| **布尔值** | 随机布尔值 | `true` 或 `false` |
+| **日期** | 当前日期时间 | `"2024-01-15T10:30:00Z"` |
+| **ID 字段** | 递增数字 | `1`, `2`, `3`... |
+| **枚举值** | 随机选择 | 从定义的枚举值中随机选择 |
+| **数组** | 随机长度数组 | `[item1, item2, item3]` |
+| **对象** | 嵌套对象 | 根据 Schema 生成 |
+
+### 智能字段识别
+
+Mock 服务器会根据字段名智能生成更合适的数据：
+
 ```json
-// 自动生成的 Mock 数据
 {
-  "id": 1,
-  "name": "fluffy",
-  "status": "available",
-  "createdAt": "2024-01-15T10:30:00Z"
+  "id": 1,                           // ID 字段：递增数字
+  "name": "Sample Pet",              // name 字段：有意义的名称
+  "email": "user@example.com",       // email 字段：邮箱格式
+  "phone": "+1234567890",            // phone 字段：电话格式
+  "url": "https://example.com",      // url 字段：URL 格式
+  "status": "active",                // status 字段：状态值
+  "createdAt": "2024-01-15T10:30:00Z", // 时间字段：ISO 格式
+  "updatedAt": "2024-01-15T10:30:00Z"
 }
-```
-
-### 数据类型支持
-
-Mock 服务器支持所有 OpenAPI 数据类型：
-
-```javascript
-// 数据类型映射
-const mockData = {
-  // 基础类型
-  string: "example string",
-  integer: 42,
-  number: 3.14,
-  boolean: true,
-  
-  // 格式化类型
-  "string(date)": "2024-01-15",
-  "string(date-time)": "2024-01-15T10:30:00Z",
-  "string(email)": "user@example.com",
-  "string(uri)": "https://example.com",
-  
-  // 枚举类型
-  "enum": "available", // 从枚举值中随机选择
-  
-  // 数组类型
-  "array": [/* 基于 items 定义生成 */],
-  
-  // 对象类型
-  "object": {/* 基于 properties 定义生成 */}
-};
 ```
 
 ## 自定义响应
 
-### 静态自定义响应
+### 创建自定义响应文件
 
-```javascript
-// mock.config.js
-export default {
-  customResponses: {
-    // 成功响应
-    'GET /pet/1': {
-      status: 200,
-      data: {
-        id: 1,
-        name: 'Buddy',
-        status: 'available',
-        category: {
-          id: 1,
-          name: 'Dogs'
-        }
-      }
-    },
-    
-    // 错误响应
-    'GET /pet/999': {
-      status: 404,
-      data: {
-        error: 'Pet not found',
-        code: 'PET_NOT_FOUND'
-      }
-    },
-    
-    // 创建响应
-    'POST /pet': {
-      status: 201,
-      data: {
-        id: 123,
-        message: 'Pet created successfully'
-      }
-    }
-  }
-};
-```
-
-### 动态响应生成
-
-```javascript
-// advanced-mock.config.js
-export default {
-  customResponses: {
-    'GET /pet/:id': (req, res) => {
-      const petId = parseInt(req.params.id);
-      
-      if (petId > 1000) {
-        return res.status(404).json({
-          error: 'Pet not found',
-          code: 'PET_NOT_FOUND'
-        });
-      }
-      
-      return res.json({
-        id: petId,
-        name: `Pet ${petId}`,
-        status: Math.random() > 0.5 ? 'available' : 'sold'
-      });
-    },
-    
-    'POST /pet': (req, res) => {
-      const newPet = req.body;
-      
-      // 验证必填字段
-      if (!newPet.name) {
-        return res.status(400).json({
-          error: 'Name is required',
-          code: 'VALIDATION_ERROR'
-        });
-      }
-      
-      // 返回创建的宠物
-      return res.status(201).json({
-        ...newPet,
-        id: Math.floor(Math.random() * 1000),
-        createdAt: new Date().toISOString()
-      });
-    }
-  }
-};
-```
-
-## 开发工作流集成
-
-### 前端开发集成
+创建 `mock/custom-responses.json`：
 
 ```json
-// package.json
 {
-  "scripts": {
-    "dev": "concurrently \"npm run mock\" \"npm run start\"",
-    "mock": "s2r mock ./api/swagger.json --port 3001",
-    "start": "react-scripts start"
+  "GET /pet/1": {
+    "status": 200,
+    "data": {
+      "id": 1,
+      "name": "Fluffy",
+      "category": {
+        "id": 1,
+        "name": "Dogs"
+      },
+      "photoUrls": ["https://example.com/photo1.jpg"],
+      "tags": [
+        {
+          "id": 1,
+          "name": "friendly"
+        }
+      ],
+      "status": "available"
+    }
   },
-  "devDependencies": {
-    "concurrently": "^7.0.0"
+  "POST /pet": {
+    "status": 201,
+    "data": {
+      "id": 2,
+      "message": "Pet created successfully"
+    }
+  },
+  "GET /store/inventory": {
+    "status": 200,
+    "data": {
+      "available": 25,
+      "pending": 5,
+      "sold": 10
+    }
   }
 }
 ```
 
-### 环境变量配置
+### 动态响应
 
-```bash
-# .env.development
-REACT_APP_API_BASE_URL=http://localhost:3001
-REACT_APP_MOCK_ENABLED=true
-
-# .env.production  
-REACT_APP_API_BASE_URL=https://api.production.com
-REACT_APP_MOCK_ENABLED=false
-```
-
-```javascript
-// api.config.js
-const baseURL = process.env.REACT_APP_MOCK_ENABLED 
-  ? 'http://localhost:3001'
-  : process.env.REACT_APP_API_BASE_URL;
-
-export const apiClient = new APIClient({ baseURL });
-```
-
-## 高级功能
-
-### CORS 配置
-
-Mock 服务器默认启用 CORS，支持所有来源的跨域请求：
-
-```javascript
-// 自定义 CORS 配置
-export default {
-  cors: {
-    origin: ['http://localhost:3000', 'http://localhost:8080'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true
+```json
+{
+  "GET /user/{username}": {
+    "status": 200,
+    "data": {
+      "id": "{{random.number}}",
+      "username": "{{params.username}}",
+      "firstName": "{{random.firstName}}",
+      "lastName": "{{random.lastName}}",
+      "email": "{{params.username}}@example.com",
+      "phone": "{{random.phone}}",
+      "userStatus": 1
+    }
   }
-};
+}
 ```
 
-### 请求日志
+## CORS 支持
 
-启用详细的请求日志记录：
+Mock 服务器默认启用 CORS 支持，允许前端应用跨域访问。
+
+### 默认 CORS 配置
+
+```javascript
+cors: {
+  enabled: true,
+  origin: '*',                       // 允许所有来源
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  headers: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+}
+```
+
+### 自定义 CORS 配置
+
+```javascript
+// 限制特定域名
+cors: {
+  enabled: true,
+  origin: ['http://localhost:3000', 'http://localhost:8080'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  headers: ['Content-Type', 'Authorization'],
+  credentials: true
+}
+
+// 动态 CORS 配置
+cors: {
+  enabled: true,
+  origin: (origin, callback) => {
+    // 自定义逻辑判断是否允许该来源
+    const allowedOrigins = ['http://localhost:3000'];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}
+```
+
+## 健康检查
+
+Mock 服务器提供健康检查端点，用于监控服务状态。
+
+### 健康检查响应
 
 ```bash
-s2r mock ./swagger.json --verbose
+curl http://localhost:3001/health
 ```
-
-日志输出示例：
-
-```
-2024-01-15T10:30:00.000Z GET /pet/1
-2024-01-15T10:30:01.000Z POST /pet
-2024-01-15T10:30:02.000Z GET /store/inventory
-```
-
-### 健康检查
-
-访问 `http://localhost:3001/health` 获取服务状态：
 
 ```json
 {
   "status": "ok",
   "timestamp": "2024-01-15T10:30:00.000Z",
   "service": "s2r-mock",
-  "version": "1.0.0",
-  "endpoints": 20
+  "version": "3.0.0",
+  "endpoints": 12,
+  "uptime": 3600
 }
 ```
 
-### API 信息端点
-
-访问 `http://localhost:3001/api-info` 获取 API 信息：
-
-```json
-{
-  "info": {
-    "title": "Swagger Petstore",
-    "version": "1.0.0",
-    "description": "This is a sample server Petstore server."
-  },
-  "servers": [
-    {
-      "url": "http://localhost:3001",
-      "description": "Mock Server"
-    }
-  ],
-  "endpointCount": 20,
-  "schemaCount": 8
-}
-```
-
-## 测试和调试
-
-### 使用 curl 测试
+### 在监控系统中使用
 
 ```bash
-# 获取宠物信息
-curl http://localhost:3001/pet/1
+# 检查服务状态
+curl -f http://localhost:3001/health || echo "Service is down"
 
-# 创建新宠物
-curl -X POST http://localhost:3001/pet \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test Pet",
-    "status": "available",
-    "photoUrls": ["test.jpg"]
-  }'
-
-# 获取库存信息
-curl http://localhost:3001/store/inventory
+# 在 Docker Compose 中使用
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
 ```
 
-### 使用 Postman
+## 日志和调试
 
-1. 导入 OpenAPI 文档到 Postman
-2. 修改服务器 URL 为 `http://localhost:3001`
-3. 测试各个端点
-
-### 程序化测试
-
-```javascript
-// test-mock.js
-import { APIClient } from './src/api';
-
-const client = new APIClient({
-  baseURL: 'http://localhost:3001'
-});
-
-async function testMockAPI() {
-  try {
-    // 测试获取宠物
-    const pet = await client.petGet('1');
-    console.log('✅ 获取宠物成功:', pet.name);
-    
-    // 测试创建宠物
-    const newPet = await client.petPost({
-      name: 'Test Pet',
-      status: 'available',
-      photoUrls: ['test.jpg']
-    });
-    console.log('✅ 创建宠物成功:', newPet.id);
-    
-    // 测试库存
-    const inventory = await client.storeInventoryGet();
-    console.log('✅ 获取库存成功:', Object.keys(inventory).length);
-    
-  } catch (error) {
-    console.error('❌ 测试失败:', error.message);
-  }
-}
-
-testMockAPI();
-```
-
-## 性能和限制
-
-### 性能特点
-
-- **启动速度**: 通常在 1-2 秒内启动
-- **响应速度**: 本地响应，通常 < 10ms
-- **并发处理**: 支持数百个并发请求
-- **内存使用**: 轻量级，通常 < 50MB
-
-### 使用限制
-
-- **数据持久化**: Mock 数据不持久化，重启后重置
-- **状态管理**: 不支持复杂的状态管理
-- **业务逻辑**: 不支持复杂的业务逻辑验证
-- **数据关联**: 有限的数据关联支持
-
-### 最佳实践
-
-1. **开发阶段**: 使用 Mock 服务器进行前端开发
-2. **测试阶段**: 用于集成测试和端到端测试
-3. **演示阶段**: 用于产品演示和原型展示
-4. **文档阶段**: 结合 Swagger UI 提供交互式文档
-
-## 故障排除
-
-### 常见问题
-
-#### 端口被占用
-
-```bash
-# 检查端口使用情况
-lsof -i :3001
-
-# 使用其他端口
-s2r mock ./swagger.json --port 3002
-```
-
-#### Swagger 文档解析错误
-
-```bash
-# 验证 Swagger 文档
-s2r validate ./swagger.json
-
-# 查看详细错误信息
-s2r mock ./swagger.json --verbose
-```
-
-#### CORS 问题
-
-```javascript
-// 在配置文件中设置 CORS
-export default {
-  cors: {
-    origin: true, // 允许所有来源
-    credentials: true
-  }
-};
-```
-
-### 调试技巧
+### 启用详细日志
 
 ```bash
 # 启用详细日志
 s2r mock ./swagger.json --verbose
 
-# 检查服务器状态
-curl http://localhost:3001/health
-
-# 查看所有端点
-curl http://localhost:3001/api-info
+# 日志输出示例
+2024-01-15T10:30:00.000Z GET /pet/1
+2024-01-15T10:30:01.000Z POST /pet
+2024-01-15T10:30:02.000Z GET /store/inventory
 ```
 
-Mock 服务器是 S2R 的重要组成部分，它大大简化了 API 开发和测试流程。通过合理配置和使用，可以显著提高开发效率和代码质量。
+### 请求和响应日志
+
+Mock 服务器会自动记录所有请求：
+
+```
+2024-01-15T10:30:00.000Z GET /pet/1 - 200 - 15ms
+2024-01-15T10:30:01.000Z POST /pet - 201 - 23ms
+2024-01-15T10:30:02.000Z GET /store/inventory - 200 - 8ms
+```
+
+## 与前端集成
+
+### React 项目集成
+
+```javascript
+// api/config.js
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:3001'  // Mock 服务器
+  : 'https://api.production.com';
+
+export { API_BASE_URL };
+```
+
+```javascript
+// 使用生成的 API 客户端
+import { apiClient, petFindByStatusGet } from './api';
+
+// 配置客户端
+apiClient.setBaseURL('http://localhost:3001');
+
+// 调用 API
+const pets = await petFindByStatusGet(['available']);
+```
+
+### Vue 项目集成
+
+```javascript
+// main.js
+import { createApp } from 'vue';
+import { apiClient } from './api';
+
+const app = createApp(App);
+
+// 配置 API 客户端
+if (process.env.NODE_ENV === 'development') {
+  apiClient.setBaseURL('http://localhost:3001');
+}
+
+app.mount('#app');
+```
+
+## 使用场景
+
+### 1. 前端开发
+
+```bash
+# 启动 Mock 服务器
+s2r mock ./api/swagger.json --port 3001 --delay 200
+
+# 前端可以立即开始开发，无需等待后端实现
+```
+
+### 2. API 测试
+
+```bash
+# 启动 Mock 服务器
+s2r mock ./swagger.json --port 3001
+
+# 使用 Swagger UI 测试所有 API 端点
+# 访问 http://localhost:3001/docs
+```
+
+### 3. 演示和原型
+
+```bash
+# 快速启动演示环境
+s2r mock ./demo-api.json --port 3001 --delay 100
+
+# 客户可以立即看到 API 的行为
+```
+
+### 4. 集成测试
+
+```bash
+# 启动 Mock 服务器用于集成测试
+s2r mock ./swagger.json --port 3001 &
+MOCK_PID=$!
+
+# 运行测试
+npm test
+
+# 清理
+kill $MOCK_PID
+```
+
+## 故障排除
+
+### 常见问题
+
+#### 1. 端口被占用
+
+```bash
+# 错误信息
+Error: listen EADDRINUSE: address already in use :::3001
+
+# 解决方案
+s2r mock ./swagger.json --port 3002
+```
+
+#### 2. CORS 错误
+
+```bash
+# 前端控制台错误
+Access to fetch at 'http://localhost:3001/api/pets' from origin 'http://localhost:3000' has been blocked by CORS policy
+
+# 解决方案：检查 CORS 配置
+```
+
+#### 3. Swagger 文档解析失败
+
+```bash
+# 错误信息
+Failed to parse swagger document
+
+# 解决方案：验证 Swagger 文档
+s2r validate ./swagger.json
+```
+
+### 调试技巧
+
+1. **使用详细日志**: `--verbose` 参数
+2. **检查健康状态**: 访问 `/health` 端点
+3. **验证 CORS**: 使用浏览器开发工具
+4. **测试 API**: 使用 Swagger UI 或 curl
+
+## 最佳实践
+
+### 1. 开发环境配置
+
+```javascript
+// swagger2request.config.js
+const isDev = process.env.NODE_ENV === 'development';
+
+module.exports = {
+  mock: {
+    enabled: isDev,
+    port: 3001,
+    delay: isDev ? 100 : 0,
+    ui: isDev,
+    cors: {
+      enabled: true,
+      origin: isDev ? '*' : ['https://myapp.com']
+    }
+  }
+};
+```
+
+### 2. 团队协作
+
+```bash
+# 在 package.json 中添加脚本
+{
+  "scripts": {
+    "dev": "concurrently \"npm run mock\" \"npm run start\"",
+    "mock": "s2r mock ./api/swagger.json --port 3001",
+    "mock:verbose": "s2r mock ./api/swagger.json --port 3001 --verbose"
+  }
+}
+```
+
+### 3. 持续集成
+
+```yaml
+# .github/workflows/test.yml
+- name: Start Mock Server
+  run: |
+    s2r mock ./api/swagger.json --port 3001 &
+    sleep 5
+    
+- name: Run Tests
+  run: npm test
+  env:
+    API_BASE_URL: http://localhost:3001
+```
+
+通过 S2R 的 Mock 服务器，您可以在不依赖后端实现的情况下快速开发和测试前端应用，大大提升开发效率。

@@ -23,6 +23,8 @@ s2r [command] [options]
 
 ```bash
 s2r generate <source> [options]
+# 或使用别名
+s2r gen <source> [options]
 ```
 
 ### 参数
@@ -45,11 +47,11 @@ s2r generate <source> [options]
 # 基础使用
 s2r generate ./swagger.json
 
-# 指定输出目录
-s2r generate ./swagger.json --output ./src/api
+# 使用项目测试 API（OpenAPI 3.1）
+s2r generate https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs --output ./src/api
 
-# 从 URL 生成
-s2r generate https://petstore.swagger.io/v2/swagger.json
+# 使用 Petstore API（OpenAPI 2.0）
+s2r generate https://petstore.swagger.io/v2/swagger.json --output ./src/api
 
 # 清空输出目录
 s2r generate ./swagger.json --clean
@@ -58,7 +60,7 @@ s2r generate ./swagger.json --clean
 s2r generate ./swagger.json --types-only
 
 # 使用配置文件
-s2r generate --config ./s2r.config.js
+s2r generate --config ./swagger2request.config.js
 
 # 启用详细日志
 s2r generate ./swagger.json --verbose
@@ -279,8 +281,6 @@ s2r validate <source> [options]
 | 选项 | 类型 | 默认值 | 描述 |
 |------|------|--------|------|
 | `-v, --verbose` | boolean | false | 显示详细验证结果 |
-| `--strict` | boolean | false | 严格模式验证 |
-| `--format <format>` | string | `table` | 输出格式 |
 
 ### 示例
 
@@ -291,119 +291,11 @@ s2r validate ./swagger.json
 # 详细验证
 s2r validate ./swagger.json --verbose
 
-# 严格模式
-s2r validate ./swagger.json --strict
-
 # 从 URL 验证
 s2r validate https://petstore.swagger.io/v2/swagger.json
 ```
 
-## config 命令
-
-配置管理命令。
-
-### 语法
-
-```bash
-s2r config <action> [options]
-```
-
-### 子命令
-
-#### init - 初始化配置文件
-
-```bash
-s2r config init [options]
-```
-
-**选项:**
-- `--type <type>` - 配置文件类型 (`js`, `ts`, `json`)
-- `--template <template>` - 配置模板 (`basic`, `full`, `minimal`)
-
-**示例:**
-```bash
-# 创建基础配置
-s2r config init
-
-# 创建 TypeScript 配置
-s2r config init --type ts
-
-# 创建完整配置
-s2r config init --template full
-```
-
-#### show - 显示当前配置
-
-```bash
-s2r config show [options]
-```
-
-**选项:**
-- `--format <format>` - 输出格式 (`json`, `yaml`, `table`)
-
-**示例:**
-```bash
-# 显示配置
-s2r config show
-
-# JSON 格式输出
-s2r config show --format json
-```
-
-#### validate - 验证配置文件
-
-```bash
-s2r config validate [file]
-```
-
-**示例:**
-```bash
-# 验证默认配置
-s2r config validate
-
-# 验证指定配置
-s2r config validate ./custom.config.js
-```
-
-## doctor 命令
-
-诊断 S2R 环境和配置问题。
-
-### 语法
-
-```bash
-s2r doctor [options]
-```
-
-### 选项
-
-| 选项 | 类型 | 默认值 | 描述 |
-|------|------|--------|------|
-| `--fix` | boolean | false | 自动修复问题 |
-| `--verbose` | boolean | false | 显示详细诊断信息 |
-
-### 检查项目
-
-- ✅ Node.js 版本
-- ✅ NPM/PNPM 版本
-- ✅ S2R 安装状态
-- ✅ 配置文件有效性
-- ✅ 依赖项完整性
-- ✅ 权限设置
-- ✅ 网络连接
-
-### 示例
-
-```bash
-# 运行诊断
-s2r doctor
-
-# 自动修复问题
-s2r doctor --fix
-
-# 详细诊断
-s2r doctor --verbose
-```
+> 注意：此命令尚在开发中，目前仅显示基本信息。
 
 ## 组合使用
 
@@ -420,7 +312,7 @@ s2r generate ./swagger.json --output ./src/api --clean
 s2r mock ./swagger.json --port 3001 &
 
 # 4. 生成 AI 文档
-s2r ai-docs ./swagger.json --output ./docs/api.md --preset developer
+s2r ai-docs ./swagger.json --output ./docs/api.md
 
 # 5. 发布 NPM 包
 s2r publish ./swagger.json --name @company/api-client --dry-run
@@ -430,10 +322,10 @@ s2r publish ./swagger.json --name @company/api-client --dry-run
 
 ```bash
 # 使用统一配置文件
-s2r generate --config ./s2r.config.js
-s2r mock --config ./s2r.config.js  
-s2r ai-docs --config ./s2r.config.js
-s2r publish --config ./s2r.config.js
+s2r generate --config ./swagger2request.config.js
+s2r mock --config ./swagger2request.config.js  
+s2r ai-docs --config ./swagger2request.config.js
+s2r publish --config ./swagger2request.config.js
 ```
 
 ### 脚本化使用
@@ -462,7 +354,7 @@ echo "✅ API 构建完成!"
 
 ```bash
 # 推荐：使用配置文件管理所有选项
-s2r generate --config ./s2r.config.js
+s2r generate --config ./swagger2request.config.js
 
 # 不推荐：使用大量命令行参数
 s2r generate ./swagger.json --output ./src/api --clean --types-only --verbose
@@ -472,10 +364,10 @@ s2r generate ./swagger.json --output ./src/api --clean --types-only --verbose
 
 ```bash
 # 开发环境
-NODE_ENV=development s2r mock --config ./s2r.config.js
+NODE_ENV=development s2r mock --config ./swagger2request.config.js
 
 # 生产环境
-NODE_ENV=production s2r publish --config ./s2r.config.js
+NODE_ENV=production s2r publish --config ./swagger2request.config.js
 ```
 
 ### 3. CI/CD 集成
@@ -484,9 +376,14 @@ NODE_ENV=production s2r publish --config ./s2r.config.js
 # 在 CI 中使用详细日志
 s2r generate ./swagger.json --verbose
 
-# 在 CI 中验证配置
-s2r config validate
-s2r doctor
+# 在 package.json 中添加脚本
+{
+  "scripts": {
+    "api:generate": "s2r generate ./api/swagger.json --output ./src/api --clean",
+    "api:mock": "s2r mock ./api/swagger.json --port 3001",
+    "api:docs": "s2r ai-docs ./api/swagger.json --output ./docs/api.md"
+  }
+}
 ```
 
 通过这些命令，您可以充分利用 S2R 的强大功能，从代码生成到发布一站式完成。
