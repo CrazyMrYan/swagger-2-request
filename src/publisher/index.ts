@@ -118,6 +118,7 @@ export const defaultPackageConfig: Partial<PackageConfig> = {
 /**
  * 默认构建配置
  */
+// eslint-disable-next-line no-undef
 export const defaultBuildConfig: BuildConfig = {
   entry: 'src/index.ts',
   format: ['cjs', 'esm'],

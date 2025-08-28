@@ -251,7 +251,7 @@ module.exports = require('./index');`;
    */
   private generatePackageJson(
     packageConfig: PackageConfig,
-    swagger: ParsedSwagger
+    _swagger: ParsedSwagger
   ): any {
     const basePackageJson = {
       name: packageConfig.name,
@@ -1005,7 +1005,7 @@ SOFTWARE.`;
   /**
    * 验证包配置
    */
-  validatePackage(packageDir: string): Promise<PackageValidationResult> {
+  validatePackage(_packageDir: string): Promise<PackageValidationResult> {
     // 这里可以添加包验证逻辑
     // 检查必要文件、package.json 格式、依赖版本等
     return Promise.resolve({

@@ -3,7 +3,7 @@
  * 使用 lodash-es 进行轻量级参数处理
  */
 
-import { pick, omit, isPlainObject, isArray, isString, isNumber, isBoolean } from 'lodash-es';
+import { pick, isPlainObject, isArray, isString, isNumber, isBoolean } from 'lodash-es';
 import { Parameter } from '../types';
 
 export class ParameterFilter {
@@ -30,7 +30,7 @@ export class ParameterFilter {
     // 移除 undefined 和 null 值
     return Object.fromEntries(
       Object.entries(filtered).filter(
-        ([_, value]) => value !== undefined && value !== null
+        ([, value]) => value !== undefined && value !== null
       )
     );
   }
@@ -198,7 +198,7 @@ export class ParameterFilter {
   /**
    * 验证布尔类型
    */
-  private validateBoolean(data: any, schema: any): boolean {
+  private validateBoolean(data: any, _schema: any): boolean {
     if (!isBoolean(data)) {
       // 尝试转换为布尔值
       if (data === 'true' || data === '1' || data === 1) {
@@ -252,7 +252,7 @@ export class ParameterFilter {
    */
   cleanObject(obj: Record<string, any>): Record<string, any> {
     return Object.fromEntries(
-      Object.entries(obj).filter(([_, value]) => {
+      Object.entries(obj).filter(([, value]) => {
         if (value === null || value === undefined) return false;
         if (isString(value) && value.trim() === '') return false;
         if (isArray(value) && value.length === 0) return false;

@@ -3,6 +3,8 @@
  * 导出所有拦截器相关的类型、工厂函数和预设配置
  */
 
+/* eslint-disable no-undef */
+
 // 核心类型和接口
 export type {
   RequestInterceptor,

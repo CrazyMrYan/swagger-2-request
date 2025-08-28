@@ -8,7 +8,7 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { OpenAPIV3 } from 'openapi-types';
 import { SwaggerAnalyzer } from '../core/swagger-parser';
-import type { MockConfig, ParsedSwagger } from '../types';
+import type { ParsedSwagger } from '../types';
 
 export interface MockServerOptions {
   port?: number;

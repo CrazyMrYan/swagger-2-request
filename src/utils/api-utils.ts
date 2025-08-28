@@ -3,7 +3,7 @@
  * 提供参数过滤、验证、转换等实用功能
  */
 
-import { pick, omit, isPlainObject } from 'lodash-es';
+import { pick, isPlainObject } from 'lodash-es';
 
 /**
  * 过滤查询参数，移除无效值
@@ -25,7 +25,7 @@ export function filterQueryParams(
 
   // 移除 undefined, null, 空字符串的值
   return Object.fromEntries(
-    Object.entries(filtered).filter(([_, value]) => {
+    Object.entries(filtered).filter(([, value]) => {
       if (value === undefined || value === null) {
         return false;
       }
@@ -215,7 +215,7 @@ function validateNumberSchema(data: any, schema: any): number {
 /**
  * 验证布尔类型
  */
-function validateBooleanSchema(data: any, schema: any): boolean {
+function validateBooleanSchema(data: any, _schema: any): boolean {
   if (typeof data === 'boolean') {
     return data;
   }
@@ -316,7 +316,7 @@ export function deepClone<T>(obj: T): T {
 
   const cloned = {} as any;
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       cloned[key] = deepClone(obj[key]);
     }
   }
@@ -334,7 +334,7 @@ export function mergeConfigs<T extends Record<string, any>>(
   const merged = deepClone(defaultConfig);
   
   for (const key in userConfig) {
-    if (userConfig.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(userConfig, key)) {
       const userValue = userConfig[key];
       const defaultValue = merged[key];
       

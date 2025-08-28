@@ -72,10 +72,11 @@ export class AIDocConverter {
         content = this.generateMarkdown(aiDoc, config);
         extension = 'md';
         break;
-      case 'json':
+      case 'json': {
         content = JSON.stringify(aiDoc, null, 2);
         extension = 'json';
         break;
+      }
       case 'yaml':
         content = this.generateYAML(aiDoc);
         extension = 'yaml';
@@ -458,7 +459,7 @@ export class AIDocConverter {
     if (schema.example) return schema.example;
 
     switch (schema.type) {
-      case 'object':
+      case 'object': {
         const obj: any = {};
         if (schema.properties) {
           Object.entries(schema.properties).forEach(([key, propSchema]: [string, any]) => {
@@ -466,6 +467,7 @@ export class AIDocConverter {
           });
         }
         return obj;
+      }
       case 'array':
         return schema.items ? [this.generateExampleFromSchema(schema.items)] : [];
       case 'string':
@@ -582,7 +584,7 @@ export class AIDocConverter {
   /**
    * 生成全局示例
    */
-  private generateGlobalExamples(swagger: ParsedSwagger): AIExample[] {
+  private generateGlobalExamples(_swagger: ParsedSwagger): AIExample[] {
     const examples: AIExample[] = [];
 
     // 认证示例

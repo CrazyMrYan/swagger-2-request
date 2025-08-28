@@ -56,7 +56,10 @@
     "quick-publish": "./scripts/quick-publish.sh",
     "version:patch": "pnpm version patch --no-git-tag-version",
     "version:minor": "pnpm version minor --no-git-tag-version",
-    "version:major": "pnpm version major --no-git-tag-version"
+    "version:major": "pnpm version major --no-git-tag-version",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^14.2.0",
@@ -90,6 +93,7 @@
     "ts-morph": "^20.0.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.0",
+    "vitepress": "^1.6.4",
     "vitest": "^0.34.0"
   },
   "engines": {

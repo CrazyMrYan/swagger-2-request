@@ -80,7 +80,7 @@ program
   .description('Validate Swagger document')
   .argument('<source>', 'Swagger document path or URL')
   .option('-v, --verbose', 'Show detailed validation results')
-  .action(async (source, options) => {
+  .action(async (source, _options) => {
     try {
       console.log(chalk.blue('✅ Validating Swagger document...'));
       console.log(chalk.gray(`Source: ${source}`));

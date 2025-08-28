@@ -176,17 +176,20 @@ export function testErrorHandlerManager() {
   console.log('🧹 错误统计已清除');
 }
 
+/**
+ * 执行所有测试
+ */
+async function runTests() {
+  try {
+    await testInterceptorSystem();
+    testAuthManager();
+    testErrorHandlerManager();
+  } catch (error) {
+    console.error('❌ 测试失败:', error);
+  }
+}
+
 // 如果直接运行此文件，执行测试
 if (require.main === module) {
-  async function runTests() {
-    try {
-      await testInterceptorSystem();
-      testAuthManager();
-      testErrorHandlerManager();
-    } catch (error) {
-      console.error('❌ 测试失败:', error);
-    }
-  }
-
   runTests();
 }

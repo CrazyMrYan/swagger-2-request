@@ -5,7 +5,6 @@
 
 import { Command } from 'commander';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { SwaggerAnalyzer } from '../core/swagger-parser';

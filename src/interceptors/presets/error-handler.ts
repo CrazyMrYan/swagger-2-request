@@ -347,7 +347,7 @@ export const errorHandlerPresets = {
   production: {
     enableTransform: true,
     enableNotification: false, // 生产环境不在控制台输出错误
-    onError: (error: StandardError) => {
+    onError: (_error: StandardError) => {
       // 可以在这里发送错误到监控系统
       // sendToErrorTracking(error);
     },
