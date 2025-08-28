@@ -1,27 +1,94 @@
-# 核心 API 参考
+# API 参考
 
-S2R 的核心 API 提供了完整的 Swagger/OpenAPI 文档解析和代码生成功能。本文档介绍如何在代码中使用 S2R 的核心功能。
+## 核心类
 
-## 主要模块导入
+### SwaggerAnalyzer
+
+解析 OpenAPI 文档：
 
 ```typescript
-// 从 s2r 包导入核心功能
-import {
-  SwaggerAnalyzer,     // Swagger 文档解析器
-  CodeGenerator,       // TypeScript 代码生成器
-  MockServer,          // Mock 服务器
-  NamingStrategy,      // 命名策略
-  VERSION,             // 版本信息
-  DEFAULT_CONFIG       // 默认配置
-} from 's2r';
+import { SwaggerAnalyzer } from 's2r';
 
-// 导入类型定义
-import type {
-  ParsedSwagger,
-  GenerationConfig,
-  MockServerOptions,
-  APIEndpoint
-} from 's2r';
+const analyzer = new SwaggerAnalyzer();
+const swagger = await analyzer.parseSwagger('./swagger.json');
+```
+
+### CodeGenerator
+
+生成 TypeScript 代码：
+
+```typescript
+import { CodeGenerator } from 's2r';
+
+const generator = new CodeGenerator();
+const files = generator.generateAPIClient(swagger, {
+  outputDir: './src/api',
+  typescript: true,
+  functionNaming: 'pathMethod'
+});
+```
+
+### MockServer
+
+启动 Mock 服务器：
+
+```typescript
+import { MockServer } from 's2r';
+
+const server = new MockServer({ port: 3001 });
+await server.start('./swagger.json');
+```
+
+## 工具函数
+
+### 参数过滤
+
+```typescript
+import { filterQueryParams } from 's2r';
+
+const filtered = filterQueryParams(params, ['page', 'limit']);
+```
+
+### 错误处理
+
+```typescript
+import { formatErrorMessage } from 's2r';
+
+const message = formatErrorMessage(error);
+```
+
+## 类型定义
+
+### GenerationConfig
+
+```typescript
+interface GenerationConfig {
+  outputDir: string;
+  typescript: boolean;
+  functionNaming: 'pathMethod' | 'operationId';
+  includeComments: boolean;
+  generateTypes: boolean;
+}
+```
+
+### ParsedSwagger
+
+```typescript
+interface ParsedSwagger {
+  info: {
+    title: string;
+    version: string;
+    description?: string;
+  };
+  paths: APIEndpoint[];
+  components: {
+    schemas?: Record<string, any>;
+  };
+  servers: Array<{
+    url: string;
+    description?: string;
+  }>;
+}
 ```
 
 ## SwaggerAnalyzer
