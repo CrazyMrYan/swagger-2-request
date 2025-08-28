@@ -434,8 +434,6 @@ export class CodeGenerator {
    * 生成客户端配置文件
    */
   private generateClientConfigFile(swagger: ParsedSwagger): GeneratedFile {
-    const baseURL = swagger.servers.length > 0 ? swagger.servers[0].url : '';
-    
     const lines: string[] = [
       '/**',
       ` * API 客户端配置`,
@@ -463,11 +461,10 @@ export class CodeGenerator {
       '  constructor(config: APIClientConfig = {}) {',
       '    // 创建 Axios 实例',
       '    this.instance = axios.create({',
-      `      baseURL: config.baseURL || '${baseURL}',`,
+      '      baseURL: config.baseURL,',
       '      timeout: config.timeout || 10000,',
       '      headers: {',
       "        'Content-Type': 'application/json',",
-      "        'User-Agent': 'Generated-API-Client/1.0.0',",
       '        ...config.headers,',
       '      },',
       '    });',
