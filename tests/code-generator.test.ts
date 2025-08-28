@@ -260,12 +260,13 @@ describe('CodeGenerator', () => {
   });
 
   describe('client configuration generation', () => {
-    it('should generate client configuration with base URL', () => {
+    it('should generate client configuration without default base URL', () => {
       const files = generator.generateAPIClient(mockParsedSwagger, mockConfig);
       const clientFile = files.find(f => f.path === 'client.ts');
 
       expect(clientFile).toBeDefined();
-      expect(clientFile!.content).toContain('baseURL: config.baseURL || \'https://api.example.com\'');
+      expect(clientFile!.content).toContain('baseURL: config.baseURL,');
+      expect(clientFile!.content).not.toContain('User-Agent');
       expect(clientFile!.content).toContain('export class APIClient');
       expect(clientFile!.content).toContain('export const apiClient = new APIClient();');
     });
