@@ -21,6 +21,8 @@ describe('CodeGenerator', () => {
       includeComments: true,
       generateTypes: true,
       cleanOutput: true,
+      excludeFiles: [],
+      forceOverride: false,
     };
 
     mockParsedSwagger = {
@@ -200,7 +202,7 @@ describe('CodeGenerator', () => {
 
       expect(typesFile!.content).toContain('export type HTTPMethod');
       expect(typesFile!.content).toContain('export interface RequestOptions');
-      expect(typesFile!.content).toContain('export interface ApiResponse');
+      expect(typesFile!.content).toContain('export interface HttpResponse');
     });
   });
 

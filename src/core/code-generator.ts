@@ -71,8 +71,8 @@ export class CodeGenerator {
     lines.push('  signal?: AbortSignal;');
     lines.push('}');
     lines.push('');
-    lines.push('/** API 响应包装 */');
-    lines.push('export interface ApiResponse<T> {');
+    lines.push('/** HTTP 响应包装 */');
+    lines.push('export interface HttpResponse<T> {');
     lines.push('  data: T;');
     lines.push('  status: number;');
     lines.push('  statusText: string;');
