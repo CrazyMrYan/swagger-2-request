@@ -116,7 +116,7 @@ const analyzer = new SwaggerAnalyzer();
 **示例:**
 ```typescript
 // 从 URL 解析（支持 OpenAPI 3.1）
-const swagger = await analyzer.parseSwagger('https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs');
+const swagger = await analyzer.parseSwagger('https://petstore.swagger.io/v2/swagger.json');
 
 // 从本地文件解析
 const swagger = await analyzer.parseSwagger('./swagger.json');

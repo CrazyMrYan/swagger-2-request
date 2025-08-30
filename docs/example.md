@@ -13,7 +13,7 @@ npm init -y
 npm install s2r axios
 
 # 生成 API 客户端
-npx s2r generate https://carty-harp-backend-test.xiaotunqifu.com/v3/api-docs --output ./src/api
+npx s2r generate https://petstore.swagger.io/v2/swagger.json --output ./src/api
 ```
 
 ## 基础用法
