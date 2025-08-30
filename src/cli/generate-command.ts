@@ -17,6 +17,7 @@ export interface GenerateOptions {
   clean?: boolean;
   typesOnly?: boolean;
   verbose?: boolean;
+  exclude?: string | string[];
 }
 
 export class GenerateCommand {
@@ -62,7 +63,7 @@ export class GenerateCommand {
 
       // 5. 写入文件
       spinner.text = '正在写入文件...';
-      await this.writeFiles(generatedFiles, config.generation.outputDir);
+      await this.writeFiles(generatedFiles, config.generation.outputDir, config.generation);
 
       // 6. 生成工具文件
       await this.generateUtilsFile(config.generation.outputDir);
@@ -109,21 +110,40 @@ export class GenerateCommand {
   private async loadConfig(options: GenerateOptions): Promise<{ generation: GenerationConfig }> {
     let config: Partial<S2RConfig> = {};
 
-    // 从配置文件加载
+    // 确定配置文件路径
+    let configPath: string | null = null;
+    
     if (options.config) {
+      // 使用命令行指定的配置文件
+      configPath = path.resolve(options.config);
+    } else {
+      // 自动查找 .s2r.cjs 配置文件
+      const defaultConfigPath = path.resolve('.s2r.cjs');
+      if (await this.fileExists(defaultConfigPath)) {
+        configPath = defaultConfigPath;
+      }
+    }
+
+    // 从配置文件加载
+    if (configPath) {
       try {
-        const configPath = path.resolve(options.config);
-        const configContent = await fs.readFile(configPath, 'utf-8');
-        
         if (configPath.endsWith('.json')) {
+          const configContent = await fs.readFile(configPath, 'utf-8');
           config = JSON.parse(configContent);
         } else {
           // 动态导入 JS 配置文件
           const configModule = await import(configPath);
           config = configModule.default || configModule;
         }
+        
+        if (options.verbose) {
+          console.log(chalk.blue(`📄 使用配置文件: ${configPath}`));
+        }
       } catch (error) {
-        console.warn(chalk.yellow(`⚠️  无法加载配置文件 ${options.config}，使用默认配置`));
+        console.warn(chalk.yellow(`⚠️  无法加载配置文件 ${configPath}，使用默认配置`));
+        if (options.verbose) {
+          console.error(error);
+        }
       }
     }
 
@@ -135,9 +155,24 @@ export class GenerateCommand {
       includeComments: config.generation?.includeComments ?? true,
       generateTypes: options.typesOnly ? false : (config.generation?.generateTypes ?? true),
       cleanOutput: options.clean ?? (config.generation?.cleanOutput ?? false),
+      excludeFiles: this.parseExcludeOption(options.exclude) ?? (config.generation?.excludeFiles ?? []),
     };
 
     return { generation };
+  }
+
+  /**
+   * 解析排除文件选项
+   */
+  private parseExcludeOption(exclude?: string | string[]): string[] | undefined {
+    if (exclude === undefined) return undefined;
+    if (typeof exclude === 'string') {
+      return exclude.split(',').map(f => f.trim()).filter(f => f.length > 0);
+    }
+    if (Array.isArray(exclude)) {
+      return exclude;
+    }
+    return [];
   }
 
   /**
@@ -164,16 +199,63 @@ export class GenerateCommand {
   }
 
   /**
+   * 检查文件是否存在
+   */
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * 判断是否应该覆盖文件
+   */
+  private shouldOverrideFile(filePath: string, fileExists: boolean, excludeFiles: string[]): boolean {
+    if (!fileExists) return true; // 文件不存在，直接创建
+    
+    // 检查文件是否在排除列表中
+    const fileName = path.basename(filePath);
+    const isExcluded = excludeFiles.some(pattern => {
+      // 支持简单的通配符匹配
+      if (pattern.includes('*')) {
+        const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+        return regex.test(fileName) || regex.test(filePath);
+      }
+      return fileName === pattern || filePath.includes(pattern);
+    });
+    
+    return !isExcluded; // 不在排除列表中的文件可以覆盖
+  }
+
+  /**
    * 写入文件
    */
-  private async writeFiles(files: Array<{ path: string; content: string }>, outputDir: string): Promise<void> {
+  private async writeFiles(files: Array<{ path: string; content: string }>, outputDir: string, config: GenerationConfig): Promise<void> {
     // 确保输出目录存在
     await fs.mkdir(outputDir, { recursive: true });
 
     // 写入每个文件
     for (const file of files) {
       const filePath = path.join(outputDir, file.path);
-      await fs.writeFile(filePath, file.content, 'utf-8');
+      
+      // 检查文件是否存在
+      const fileExists = await this.fileExists(filePath);
+      
+      // 判断是否应该覆盖文件
+      const shouldOverride = this.shouldOverrideFile(file.path, fileExists, config.excludeFiles);
+      
+      if (shouldOverride) {
+        await fs.writeFile(filePath, file.content, 'utf-8');
+        console.log(chalk.green(`✓ ${fileExists ? '覆盖' : '创建'} ${file.path}`));
+      } else if (fileExists) {
+        console.log(chalk.yellow(`⚠ 跳过已存在的文件: ${file.path}`));
+      } else {
+        await fs.writeFile(filePath, file.content, 'utf-8');
+        console.log(chalk.green(`✓ 创建 ${file.path}`));
+      }
     }
   }
 
@@ -312,6 +394,83 @@ export function createQueryString(params: Record<string, any>): string {
 
     const filePath = path.join(outputDir, 'utils.ts');
     await fs.writeFile(filePath, utilsContent, 'utf-8');
+  }
+
+  /**
+   * 初始化配置文件
+   */
+  async initConfig(force: boolean = false): Promise<void> {
+    const configPath = path.resolve('.s2r.cjs');
+    
+    // 检查文件是否已存在
+    if (!force && await this.fileExists(configPath)) {
+      console.log(chalk.yellow('⚠️  配置文件 .s2r.cjs 已存在，使用 --force 参数强制覆盖'));
+      return;
+    }
+    
+    const configTemplate = `/**
+ * Swagger-2-Request 配置文件
+ * 更多配置选项请参考: https://crazymryan.github.io/swagger-2-request/
+ */
+module.exports = {
+  // 代码生成配置
+  generation: {
+    // 输出目录
+    outputDir: './src/api',
+    
+    // 是否生成 TypeScript 代码
+    typescript: true,
+    
+    // 函数命名方式: 'pathMethod' | 'operationId'
+    functionNaming: 'pathMethod',
+    
+    // 是否包含注释
+    includeComments: true,
+    
+    // 是否生成类型定义
+    generateTypes: true,
+    
+    // 是否清理输出目录
+    cleanOutput: false,
+    
+    // 排除覆盖的文件列表，支持通配符
+    // 例如: ['*interceptor*', 'custom.ts'] 表示不覆盖包含 interceptor 的文件和 custom.ts 文件
+    // 默认为空数组，表示覆盖所有文件
+    excludeFiles: []
+  },
+  
+  // Mock 服务配置
+  mock: {
+    // 服务端口
+    port: 3001,
+    
+    // 响应延迟（毫秒）
+    delay: 0,
+    
+    // 是否启用 Swagger UI
+    enableUI: true
+  },
+  
+  // 拦截器配置
+  interceptors: {
+    // 请求拦截器
+    request: {
+      // 是否启用
+      enabled: true
+    },
+    
+    // 响应拦截器
+    response: {
+      // 是否启用
+      enabled: true
+    }
+  }
+};
+`;
+    
+    await fs.writeFile(configPath, configTemplate, 'utf-8');
+    console.log(chalk.green('✅ 配置文件 .s2r.cjs 已生成'));
+    console.log(chalk.blue('📖 配置文档: https://crazymryan.github.io/swagger-2-request/'));
   }
 
   /**

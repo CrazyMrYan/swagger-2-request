@@ -80,6 +80,7 @@ export interface GenerationConfig {
   includeComments: boolean;
   generateTypes: boolean;
   cleanOutput: boolean;
+  excludeFiles: string[];
 }
 
 // 运行时配置

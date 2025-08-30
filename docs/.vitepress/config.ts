@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'S2R Documentation',
   description: 'Generate TypeScript API clients from OpenAPI documents',
-  base: '/swagger-2-request/',
+  base: '/s2r/',
   
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
@@ -18,12 +18,12 @@ export default defineConfig({
       { text: '核心', link: '/api/core' },
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/CrazyMrYan/s2r' }
+      { icon: 'github', link: 'https://github.com/yanjiahui/swagger-2-request' }
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2025 CrazyMrYan'
+      copyright: 'Copyright © 2025 yanjiahui'
     },
 
     search: {

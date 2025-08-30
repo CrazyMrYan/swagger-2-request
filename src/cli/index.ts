@@ -31,6 +31,7 @@ program
   .option('-c, --config <file>', 'Configuration file path')
   .option('--clean', 'Clean output directory before generation')
   .option('--types-only', 'Generate only TypeScript types')
+  .option('--exclude <files>', 'Files to exclude from overwriting (comma-separated), supports wildcards')
   .option('--verbose', 'Enable verbose logging')
   .action(async (source, options) => {
     try {
@@ -74,6 +75,22 @@ program.addCommand(aiDocsCommand.createCommand());
 
 
 
+// init 命令
+program
+  .command('init')
+  .description('Initialize .s2r.js configuration file')
+  .option('-f, --force', 'Overwrite existing configuration file')
+  .action(async (options) => {
+    try {
+      const generateCommand = new GenerateCommand();
+      await generateCommand.initConfig(options.force);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(chalk.red('❌ Configuration initialization failed:'), errorMessage);
+      process.exit(1);
+    }
+  });
+
 // validate 命令
 program
   .command('validate')
@@ -82,11 +99,16 @@ program
   .option('-v, --verbose', 'Show detailed validation results')
   .action(async (source, _options) => {
     try {
-      console.log(chalk.blue('✅ Validating Swagger document...'));
-      console.log(chalk.gray(`Source: ${source}`));
+      const generateCommand = new GenerateCommand();
+      const isValid = await generateCommand.validateSwagger(source);
       
-      // TODO: 实现验证逻辑
-      console.log(chalk.red('⚠️  Validate command not implemented yet'));
+      if (isValid) {
+        console.log(chalk.green('✅ Swagger document is valid'));
+        process.exit(0);
+      } else {
+        console.log(chalk.red('❌ Swagger document is invalid'));
+        process.exit(1);
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error(chalk.red('❌ Validation failed:'), errorMessage);

@@ -18,6 +18,12 @@ s2r generate https://petstore.swagger.io/v2/swagger.json
 
 # 指定输出目录
 s2r generate ./swagger.json --output ./src/api
+
+# 排除特定文件不被覆盖
+s2r generate ./swagger.json --exclude "client.ts,utils.ts"
+
+# 使用通配符排除文件
+s2r generate ./swagger.json --exclude "*test*,*mock*"
 ```
 
 ## 使用生成的代码
@@ -43,7 +49,7 @@ open http://localhost:3001/docs
 
 ## 配置文件（可选）
 
-创建 `s2r.config.js`：
+创建 `.s2r.cjs`：
 
 ```javascript
 module.exports = {
@@ -52,7 +58,8 @@ module.exports = {
   },
   generation: {
     outputDir: './src/api',
-    functionNaming: 'pathMethod'
+    functionNaming: 'pathMethod',
+    excludeFiles: [] // 指定不覆盖的文件列表，支持通配符
   }
 };
 ```

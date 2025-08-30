@@ -30,10 +30,40 @@ s2r publish ./swagger.json \
 
 ## 高级配置
 
+### 文件排除配置
+
+使用 `excludeFiles` 可以指定在重新生成时不覆盖的文件：
+
+```bash
+# 命令行方式排除文件
+s2r generate ./swagger.json --exclude "client.ts,utils.ts"
+
+# 使用通配符排除文件
+s2r generate ./swagger.json --exclude "*test*,*mock*,custom-*"
+```
+
+配置文件方式：
+
+```javascript
+// .s2r.cjs
+module.exports = {
+  generation: {
+    excludeFiles: [
+      '*test*',           // 排除所有包含 test 的文件
+      'custom-client.ts', // 排除特定文件
+      '*interceptor*',    // 排除所有包含 interceptor 的文件
+      '*.config.ts'       // 排除所有 .config.ts 文件
+    ]
+  }
+};
+```
+
+**注意**：命令行参数会覆盖配置文件中的设置。
+
 ### 完整配置文件
 
 ```javascript
-// s2r.config.js
+// .s2r.cjs
 module.exports = {
   swagger: {
     source: './swagger.json'
@@ -43,7 +73,8 @@ module.exports = {
     outputDir: './src/api',
     functionNaming: 'pathMethod',
     includeComments: true,
-    generateTypes: true
+    generateTypes: true,
+    excludeFiles: ['*test*', 'custom-client.ts'] // 指定不覆盖的文件列表
   },
   
   runtime: {
@@ -72,7 +103,7 @@ module.exports = {
 ```bash
 # 设置环境变量
 export API_BASE_URL=https://api.example.com
-export S2R_CONFIG_PATH=./config/s2r.config.js
+export S2R_CONFIG_PATH=./config/.s2r.cjs
 export S2R_OUTPUT_DIR=./src/generated
 ```
 
