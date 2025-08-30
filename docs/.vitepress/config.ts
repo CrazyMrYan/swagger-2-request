@@ -14,16 +14,38 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '快速开始', link: '/getting-started' },
+      { text: '配置说明', link: '/configuration' },
+      { text: '脚本使用', link: '/scripts' },
+      { text: '高级功能', link: '/advanced' },
       { text: '示例', link: '/example' },
-      { text: '核心', link: '/api/core' },
     ],
+    
+    sidebar: {
+      '/': [
+        {
+          text: '指南',
+          items: [
+            { text: '快速开始', link: '/getting-started' },
+            { text: '配置说明', link: '/configuration' },
+            { text: '脚本使用', link: '/scripts' }
+          ]
+        },
+        {
+          text: '进阶',
+          items: [
+            { text: '高级功能', link: '/advanced' },
+            { text: '完整示例', link: '/example' }
+          ]
+        }
+      ]
+    },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yanjiahui/swagger-2-request' }
+        { icon: 'github', link: 'https://github.com/yanjiahui/swagger-2-request' }
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2025 yanjiahui'
+      copyright: 'Copyright © 2025 CrazyMrYan'
     },
 
     search: {
