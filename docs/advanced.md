@@ -76,17 +76,17 @@ s2r generate ./swagger.json -o ./src/api --force
 
 配置文件方式：
 
-```javascript
-// .s2r.cjs
-module.exports = {
-  generation: {
+```json
+// .s2r.json
+{
+  "generation": {
     // 默认为 false，保护 client 文件
-    forceOverride: false,
+    "forceOverride": false,
     
     // 设置为 true 时，覆盖所有文件（包括 client 文件）
-    // forceOverride: true
+    // "forceOverride": true
   }
-};
+}
 ```
 
 **使用场景**：

@@ -118,8 +118,8 @@ export class GenerateCommand {
       // 使用命令行指定的配置文件
       configPath = path.resolve(options.config);
     } else {
-      // 自动查找 .s2r.cjs 配置文件
-      const defaultConfigPath = path.resolve('.s2r.cjs');
+      // 自动查找 .s2r.json 配置文件
+      const defaultConfigPath = path.resolve('.s2r.json');
       if (await this.fileExists(defaultConfigPath)) {
         configPath = defaultConfigPath;
       }
@@ -416,81 +416,77 @@ export function createQueryString(params: Record<string, any>): string {
    * 初始化配置文件
    */
   async initConfig(force: boolean = false): Promise<void> {
-    const configPath = path.resolve('.s2r.cjs');
+    const configPath = path.resolve('.s2r.json');
     
     // 检查文件是否已存在
     if (!force && await this.fileExists(configPath)) {
-      console.log(chalk.yellow('⚠️  配置文件 .s2r.cjs 已存在，使用 --force 参数强制覆盖'));
+      console.log(chalk.yellow('⚠️  配置文件 .s2r.json 已存在，使用 --force 参数强制覆盖'));
       return;
     }
     
-    const configTemplate = `/**
- * Swagger-2-Request 配置文件
- * 更多配置选项请参考: https://crazymryan.github.io/swagger-2-request/
- */
-module.exports = {
-  // 代码生成配置
-  generation: {
-    // 输出目录
-    outputDir: './src/api',
+    const configTemplate = {
+      "_comment": "S2R 配置文件 - 更多配置选项请参考: https://crazymryan.github.io/swagger-2-request/",
+      
+      // Swagger 文档配置
+      "swagger": {
+        "source": "./swagger.json",
+        "version": "3.0"
+      },
+      
+      // 代码生成配置
+      "generation": {
+        "outputDir": "./src/api",
+        "typescript": true,
+        "functionNaming": "pathMethod",
+        "includeComments": true,
+        "generateTypes": true,
+        "cleanOutput": false,
+        "excludeFiles": [],
+        "forceOverride": false
+      },
+      
+      // 运行时配置
+      "runtime": {
+        "baseURL": "https://api.example.com",
+        "timeout": 10000,
+        "validateParams": true,
+        "filterParams": true
+      },
+      
+      // Mock 服务配置
+      "mock": {
+        "enabled": true,
+        "port": 3001,
+        "delay": 0,
+        "enableUI": true,
+        "customResponses": "./mock-responses"
+      },
+      
+      // 拦截器配置
+      "interceptors": {
+        "request": {
+          "enabled": true
+        },
+        "response": {
+          "enabled": true
+        }
+      },
+      
+      // NPM 包配置
+      "package": {
+        "name": "@company/api-client",
+        "version": "1.0.0",
+        "description": "Generated API client",
+        "repository": "https://github.com/company/api-client",
+        "private": false,
+        "publishConfig": {
+          "registry": "https://registry.npmjs.org"
+        }
+      }
+    };
     
-    // 是否生成 TypeScript 代码
-    typescript: true,
-    
-    // 函数命名方式: 'pathMethod' | 'operationId'
-    functionNaming: 'pathMethod',
-    
-    // 是否包含注释
-    includeComments: true,
-    
-    // 是否生成类型定义
-    generateTypes: true,
-    
-    // 是否清理输出目录
-    cleanOutput: false,
-    
-    // 排除覆盖的文件列表，支持通配符
-    // 例如: ['*interceptor*', 'custom.ts'] 表示不覆盖包含 interceptor 的文件和 custom.ts 文件
-    // 默认为空数组，表示覆盖所有文件
-    excludeFiles: [],
-    
-    // 是否强制覆盖所有文件，包括 client 文件
-    // 默认为 false，表示不覆盖已存在的 client.ts 文件
-    // 设置为 true 时，将覆盖所有文件（包括 client.ts）
-    forceOverride: false
-  },
-  
-  // Mock 服务配置
-  mock: {
-    // 服务端口
-    port: 3001,
-    
-    // 响应延迟（毫秒）
-    delay: 0,
-    
-    // 是否启用 Swagger UI
-    enableUI: true
-  },
-  
-  // 拦截器配置
-  interceptors: {
-    // 请求拦截器
-    request: {
-      // 是否启用
-      enabled: true
-    },
-    
-    // 响应拦截器
-    response: {
-      // 是否启用
-      enabled: true
-    }
-  }
-};
-`;
-    
-    await fs.writeFile(configPath, configTemplate, 'utf-8');
-    console.log(chalk.green('✅ 配置文件 .s2r.cjs 已生成'));
+    await fs.writeFile(configPath, JSON.stringify(configTemplate, null, 2), 'utf-8');
+    console.log(chalk.green('✅ 配置文件 .s2r.json 已生成'));
     console.log(chalk.blue('📖 配置文档: https://crazymryan.github.io/swagger-2-request/'));
   }
 

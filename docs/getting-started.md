@@ -52,19 +52,19 @@ open http://localhost:3001/docs
 
 ## 配置文件（可选）
 
-创建 `.s2r.cjs`：
+创建 `.s2r.json`：
 
-```javascript
-module.exports = {
-  swagger: {
-    source: './swagger.json'
+```json
+{
+  "swagger": {
+    "source": "./swagger.json"
   },
-  generation: {
-    outputDir: './src/api',
-    functionNaming: 'pathMethod',
-    excludeFiles: [] // 指定不覆盖的文件列表，支持通配符
+  "generation": {
+    "outputDir": "./src/api",
+    "functionNaming": "pathMethod",
+    "excludeFiles": [] // 指定不覆盖的文件列表，支持通配符
   }
-};
+}
 ```
 
 然后运行：

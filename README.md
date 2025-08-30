@@ -68,49 +68,51 @@ s2r mock ./swagger.json --port 3000
 
 ## ⚙️ 配置文件
 
-使用 `s2r init` 生成的 `.s2r.cjs` 配置文件示例：
+使用 `s2r init` 生成的 `.s2r.json` 配置文件示例：
 
-```javascript
-module.exports = {
+```json
+{
+  "_comment": "S2R 配置文件",
+  
   // 代码生成配置
-  generation: {
+  "generation": {
     // 输出目录
-    outputDir: './src/api',
+    "outputDir": "./src/api",
     
     // 是否生成 TypeScript 代码
-    typescript: true,
+    "typescript": true,
     
     // 函数命名方式: 'pathMethod' | 'operationId'
-    functionNaming: 'pathMethod',
+    "functionNaming": "pathMethod",
     
     // 是否包含注释
-    includeComments: true,
+    "includeComments": true,
     
     // 是否生成类型定义
-    generateTypes: true,
+    "generateTypes": true,
     
     // 是否清理输出目录
-    cleanOutput: false,
+    "cleanOutput": false,
     
     // 排除覆盖的文件列表，支持通配符
-    // 例如: ['*interceptor*', 'custom.ts'] 表示不覆盖包含 interceptor 的文件和 custom.ts 文件
+    // 例如: ["*interceptor*", "custom.ts"] 表示不覆盖包含 interceptor 的文件和 custom.ts 文件
     // 默认为空数组，表示覆盖所有文件
-    excludeFiles: []
+    "excludeFiles": []
   },
   
   // Mock 服务配置
-  mock: {
-    port: 3001,
-    delay: 0,
-    enableUI: true
+  "mock": {
+    "port": 3001,
+    "delay": 0,
+    "enableUI": true
   },
   
   // 拦截器配置
-  interceptors: {
-    request: { enabled: true },
-    response: { enabled: true }
+  "interceptors": {
+    "request": { "enabled": true },
+    "response": { "enabled": true }
   }
-};
+}
 ```
 
 ## 📋 命令行选项
@@ -176,7 +178,7 @@ s2r validate <source> [options]
 ### 配置文件优先级
 
 1. 命令行参数（最高优先级）
-2. `.s2r.cjs` 配置文件
+2. `.s2r.json` 配置文件
 3. 默认配置（最低优先级）
 
 ## 🤝 贡献

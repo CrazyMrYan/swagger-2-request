@@ -79,7 +79,7 @@ program.addCommand(aiDocsCommand.createCommand());
 // init 命令
 program
   .command('init')
-  .description('Initialize .s2r.js configuration file')
+  .description('Initialize .s2r.json configuration file')
   .option('-f, --force', 'Overwrite existing configuration file')
   .action(async (options) => {
     try {

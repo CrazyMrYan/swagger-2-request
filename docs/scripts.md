@@ -7,16 +7,16 @@
 ```json
 {
   "scripts": {
-    "api:generate": "s2r generate --config .s2r.cjs",
-    "api:generate:clean": "s2r generate --config .s2r.cjs --clean",
-    "api:generate:types": "s2r generate --config .s2r.cjs --types-only",
-    "api:generate:force": "s2r generate --config .s2r.cjs --force",
-    "api:mock": "s2r mock --config .s2r.cjs --port 3001",
-    "api:mock:ui": "s2r mock --config .s2r.cjs --port 3001 && open http://localhost:3001/docs",
-    "api:validate": "s2r validate --config .s2r.cjs",
-    "api:publish": "s2r publish --config .s2r.cjs --preview",
-    "api:publish:prod": "s2r publish --config .s2r.cjs",
-    "api:docs": "s2r ai-docs --config .s2r.cjs --output ./docs/api.md",
+    "api:generate": "s2r generate --config .s2r.json",
+    "api:generate:clean": "s2r generate --config .s2r.json --clean",
+    "api:generate:types": "s2r generate --config .s2r.json --types-only",
+    "api:generate:force": "s2r generate --config .s2r.json --force",
+    "api:mock": "s2r mock --config .s2r.json --port 3001",
+    "api:mock:ui": "s2r mock --config .s2r.json --port 3001 && open http://localhost:3001/docs",
+    "api:validate": "s2r validate --config .s2r.json",
+    "api:publish": "s2r publish --config .s2r.json --preview",
+    "api:publish:prod": "s2r publish --config .s2r.json",
+    "api:docs": "s2r ai-docs --config .s2r.json --output ./docs/api.md",
     "api:init": "s2r init --force"
   }
 }

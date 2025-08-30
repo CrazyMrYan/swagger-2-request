@@ -2,13 +2,13 @@
 
 ## 配置文件
 
-S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.cjs` 作为配置文件名。
+S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作为配置文件名。
 
 ### 基础配置
 
-```javascript
-// .s2r.cjs
-module.exports = {
+```json
+// .s2r.json
+{
   // Swagger 文档配置
   swagger: {
     // Swagger 文档地址或本地文件路径
@@ -41,71 +41,73 @@ module.exports = {
     // 是否强制覆盖所有文件，包括 client 文件
     forceOverride: false
   }
-};
+}
 ```
 
 ### 完整配置选项
 
-```javascript
-// .s2r.cjs
-module.exports = {
+```json
+// .s2r.json
+{
+  "_comment": "S2R 配置文件",
+  
   // Swagger 文档配置
-  swagger: {
-    source: 'https://api.example.com/swagger.json',
-    version: '3.0'
+  "swagger": {
+    "source": "https://api.example.com/swagger.json",
+    "version": "3.0"
   },
   
   // 代码生成配置
-  generation: {
-    outputDir: './src/api',
-    typescript: true,
-    functionNaming: 'pathMethod',
-    includeComments: true,
-    generateTypes: true,
-    cleanOutput: false,
-    excludeFiles: ['*test*', 'custom-*.ts'],
-    forceOverride: false
+  "generation": {
+    "outputDir": "./src/api",
+    "typescript": true,
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": ["*test*", "custom-*.ts"],
+    "forceOverride": false
   },
   
   // 运行时配置
-  runtime: {
-    baseURL: 'https://api.example.com',
-    timeout: 10000,
-    validateParams: true,
-    filterParams: true
+  "runtime": {
+    "baseURL": "https://api.example.com",
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
   },
   
   // Mock 服务配置
-  mock: {
-    enabled: true,
-    port: 3001,
-    delay: 200,
-    ui: true,
-    customResponses: './mock-responses'
+  "mock": {
+    "enabled": true,
+    "port": 3001,
+    "delay": 200,
+    "enableUI": true,
+    "customResponses": "./mock-responses"
   },
   
   // 拦截器配置
-  interceptors: {
-    request: {
-      enabled: true
+  "interceptors": {
+    "request": {
+      "enabled": true
     },
-    response: {
-      enabled: true
+    "response": {
+      "enabled": true
     }
   },
   
   // NPM 包配置
-  package: {
-    name: '@company/api-client',
-    version: '1.0.0',
-    description: 'Generated API client',
-    repository: 'https://github.com/company/api-client',
-    private: false,
-    publishConfig: {
-      registry: 'https://registry.npmjs.org'
+  "package": {
+    "name": "@company/api-client",
+    "version": "1.0.0",
+    "description": "Generated API client",
+    "repository": "https://github.com/company/api-client",
+    "private": false,
+    "publishConfig": {
+      "registry": "https://registry.npmjs.org"
     }
   }
-};
+}
 ```
 
 ## 配置项详解
@@ -169,7 +171,7 @@ S2R 支持通过环境变量进行配置：
 export API_BASE_URL=https://api.example.com
 
 # 配置文件路径
-export S2R_CONFIG_PATH=./config/.s2r.cjs
+export S2R_CONFIG_PATH=./config/.s2r.json
 
 # 输出目录
 export S2R_OUTPUT_DIR=./src/generated
