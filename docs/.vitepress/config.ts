@@ -40,7 +40,7 @@ export default defineConfig({
       ]
     },
     socialLinks: [
-        { icon: 'github', link: 'https://github.com/yanjiahui/swagger-2-request' }
+        { icon: 'github', link: 'https://github.com/CrazyMrYan/swagger-2-request' }
     ],
 
     footer: {
