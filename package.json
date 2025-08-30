@@ -14,7 +14,7 @@
     "axios",
     "s2r"
   ],
-  "homepage": "https://s2r.dev",
+  "homepage": "https://crazymryan.github.io/swagger-2-request/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CrazyMrYan/s2r.git"
