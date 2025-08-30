@@ -9,6 +9,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { SwaggerAnalyzer } from '../core/swagger-parser';
+import type { S2RConfig } from '../types';
 import { 
   AIDocConverter, 
   aiDocPresets, 
@@ -35,7 +36,7 @@ export class AIDocsCommand {
 
     command
       .description('转换 Swagger 为 AI 友好文档格式')
-      .argument('<swagger>', 'Swagger JSON 文件路径或 URL')
+      .argument('[swagger]', 'Swagger JSON 文件路径或 URL (optional if specified in config file)')
       .option('-o, --output <file>', '输出文件路径', './docs/api-ai.md')
       .option('-f, --format <format>', '输出格式 (markdown|json|yaml)', 'markdown')
       .option('-p, --preset <preset>', '预设配置 (developer|reference|training|preview)', 'developer')
@@ -57,13 +58,25 @@ export class AIDocsCommand {
   /**
    * 处理 AI 文档生成
    */
-  private async handleAIDocsGeneration(swaggerPath: string, options: any): Promise<void> {
+  private async handleAIDocsGeneration(swaggerPath: string | undefined, options: any): Promise<void> {
     const spinner = ora('开始处理 AI 文档转换...').start();
 
     try {
-      // 1. 解析 Swagger 文档
+      // 1. 获取 Swagger 源
+      let swaggerSource = swaggerPath;
+      if (!swaggerSource) {
+        // 从配置文件读取
+        const config = await this.loadConfig(options.config);
+        swaggerSource = config.swagger?.source;
+        
+        if (!swaggerSource) {
+          throw new Error('缺少 Swagger 文档源。请通过命令行参数指定或在配置文件中设置 swagger.source');
+        }
+      }
+
+      // 2. 解析 Swagger 文档
       spinner.text = '解析 Swagger 文档...';
-      const swagger = await this.analyzer.parseSwagger(swaggerPath);
+      const swagger = await this.analyzer.parseSwagger(swaggerSource);
       spinner.succeed('✅ Swagger 文档解析成功');
 
       // 2. 构建配置
@@ -275,12 +288,61 @@ export class AIDocsCommand {
    * 格式化文件大小
    */
   private formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
+   * 加载配置文件
+   */
+  private async loadConfig(configPath?: string): Promise<Partial<S2RConfig>> {
+    let config: Partial<S2RConfig> = {};
+
+    // 确定配置文件路径
+    let resolvedConfigPath: string | null = null;
     
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    if (configPath) {
+      // 使用命令行指定的配置文件
+      resolvedConfigPath = path.resolve(configPath);
+    } else {
+      // 自动查找 .s2r.json 配置文件
+      const defaultConfigPath = path.resolve('.s2r.json');
+      if (await this.fileExists(defaultConfigPath)) {
+        resolvedConfigPath = defaultConfigPath;
+      }
+    }
+
+    // 从配置文件加载
+    if (resolvedConfigPath) {
+      try {
+        if (resolvedConfigPath.endsWith('.json')) {
+          const configContent = await fs.readFile(resolvedConfigPath, 'utf-8');
+          config = JSON.parse(configContent);
+        } else {
+          // 动态导入 JS 配置文件
+          const configModule = await import(resolvedConfigPath);
+          config = configModule.default || configModule;
+        }
+      } catch (error) {
+        console.warn(chalk.yellow(`⚠️  无法加载配置文件 ${resolvedConfigPath}，使用默认配置`));
+      }
+    }
+
+    return config;
+  }
+
+  /**
+   * 检查文件是否存在
+   */
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

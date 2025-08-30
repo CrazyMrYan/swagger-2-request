@@ -49,7 +49,7 @@ program
 program
   .command('mock')
   .description('Start mock server from Swagger document')
-  .argument('<source>', 'Swagger document path or URL')
+  .argument('[source]', 'Swagger document path or URL (optional if specified in config file)')
   .option('-p, --port <number>', 'Server port', '3001')
   .option('-d, --delay <number>', 'Response delay in ms', '0')
   .option('--no-ui', 'Disable Swagger UI')
@@ -96,12 +96,26 @@ program
 program
   .command('validate')
   .description('Validate Swagger document')
-  .argument('<source>', 'Swagger document path or URL')
+  .argument('[source]', 'Swagger document path or URL (optional if specified in config file)')
   .option('-v, --verbose', 'Show detailed validation results')
-  .action(async (source, _options) => {
+  .option('-c, --config <file>', 'Configuration file path')
+  .action(async (source, options) => {
     try {
       const generateCommand = new GenerateCommand();
-      const isValid = await generateCommand.validateSwagger(source);
+      
+      // 获取 Swagger 源
+       let swaggerSource = source;
+       if (!swaggerSource) {
+         // 从配置文件读取
+         const config = await generateCommand.loadConfigPublic(options.config);
+         swaggerSource = config.swagger?.source;
+         
+         if (!swaggerSource) {
+           throw new Error('缺少 Swagger 文档源。请通过命令行参数指定或在配置文件中设置 swagger.source');
+         }
+       }
+      
+      const isValid = await generateCommand.validateSwagger(swaggerSource);
       
       if (isValid) {
         console.log(chalk.green('✅ Swagger document is valid'));

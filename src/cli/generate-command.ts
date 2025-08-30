@@ -514,4 +514,43 @@ export function createQueryString(params: Record<string, any>): string {
       return false;
     }
   }
+
+  /**
+   * 公共配置加载方法，用于其他命令
+   */
+  async loadConfigPublic(configPath?: string): Promise<Partial<S2RConfig>> {
+    let config: Partial<S2RConfig> = {};
+
+    // 确定配置文件路径
+    let resolvedConfigPath: string | null = null;
+    
+    if (configPath) {
+      // 使用命令行指定的配置文件
+      resolvedConfigPath = path.resolve(configPath);
+    } else {
+      // 自动查找 .s2r.json 配置文件
+      const defaultConfigPath = path.resolve('.s2r.json');
+      if (await this.fileExists(defaultConfigPath)) {
+        resolvedConfigPath = defaultConfigPath;
+      }
+    }
+
+    // 从配置文件加载
+    if (resolvedConfigPath) {
+      try {
+        if (resolvedConfigPath.endsWith('.json')) {
+          const configContent = await fs.readFile(resolvedConfigPath, 'utf-8');
+          config = JSON.parse(configContent);
+        } else {
+          // 动态导入 JS 配置文件
+          const configModule = await import(resolvedConfigPath);
+          config = configModule.default || configModule;
+        }
+      } catch (error) {
+        console.warn(chalk.yellow(`⚠️  无法加载配置文件 ${resolvedConfigPath}，使用默认配置`));
+      }
+    }
+
+    return config;
+  }
 }
