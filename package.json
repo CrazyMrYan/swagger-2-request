@@ -1,6 +1,6 @@
 {
   "name": "s2r",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "type": "module",
   "description": "Generate TypeScript API clients from Swagger/OpenAPI 2.0-3.1 documents with built-in axios, mock server, and AI-friendly documentation - S2R (Swagger to Request)",
   "keywords": [
@@ -21,8 +21,8 @@
   },
   "license": "MIT",
   "author": {
-    "name": "Your Name",
-    "email": "your.email@example.com"
+    "name": "CrazyMrYan",
+    "email": "crazymryan@gmail.com"
   },
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
@@ -104,6 +104,6 @@
   },
   "funding": {
     "type": "github",
-    "url": "https://github.com/sponsors/s2r"
+    "url": "https://github.com/CrazyMrYan/s2r"
   }
 }
