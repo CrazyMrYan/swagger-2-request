@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'S2R Documentation',
   description: 'Generate TypeScript API clients from OpenAPI documents',
-  base: '/s2r/',
+  base: '/swagger-2-request/',
   
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
