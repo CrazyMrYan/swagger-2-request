@@ -24,14 +24,22 @@
 
 ### 配置要求
 
-1. **GitHub Pages 自动启用**：
-   - 工作流会自动启用 GitHub Pages（如果尚未启用）
-   - 如果遇到权限问题，请手动进入仓库设置 → Pages，Source 选择 "GitHub Actions"
+**重要：使用前必须手动配置以下设置**
 
-2. **权限设置**：
-   - 工作流已配置必要的权限
-   - 确保仓库设置中允许 GitHub Actions 写入
-   - 确保 GITHUB_TOKEN 有足够权限操作 Pages
+1. **启用 GitHub Pages**：
+   - 进入仓库设置 → Pages
+   - Source 选择 "GitHub Actions"
+   - 点击保存
+
+2. **配置 Actions 权限**：
+   - 进入仓库设置 → Actions → General
+   - 在 "Workflow permissions" 部分选择 "Read and write permissions"
+   - 勾选 "Allow GitHub Actions to create and approve pull requests"
+   - 点击保存
+
+3. **验证权限设置**：
+   - 确保工作流有 `contents: read`、`pages: write`、`id-token: write` 权限
+   - 这些权限已在工作流文件中预配置
 
 ### 访问地址
 
@@ -46,12 +54,24 @@
 
 ### 故障排除
 
-如果遇到 "Get Pages site failed" 错误：
+#### 常见错误及解决方案
 
-1. **检查仓库权限**：确保你有仓库的管理员权限
-2. **手动启用 Pages**：
-   - 进入仓库设置 → Pages
-   - Source 选择 "GitHub Actions"
-   - 保存设置后重新运行工作流
-3. **检查分支保护**：确保主分支允许 GitHub Actions 写入
-4. **验证 token 权限**：确保 GITHUB_TOKEN 有 `pages: write` 和 `id-token: write` 权限
+**1. "Resource not accessible by integration" 错误**：
+- 进入仓库设置 → Actions → General
+- 将 "Workflow permissions" 改为 "Read and write permissions"
+- 勾选 "Allow GitHub Actions to create and approve pull requests"
+- 重新运行工作流
+
+**2. "Get Pages site failed" 错误**：
+- 确保你有仓库的管理员权限
+- 手动启用 Pages：设置 → Pages → Source 选择 "GitHub Actions"
+- 保存设置后重新运行工作流
+
+**3. "HttpError: Not Found" 错误**：
+- 检查仓库是否为公开仓库（私有仓库需要 GitHub Pro）
+- 确认仓库名称和分支名称正确
+- 验证 VitePress 配置中的 base 路径设置
+
+**4. 部署成功但页面无法访问**：
+- 检查 VitePress 配置中的 `base` 设置是否正确
+- 确认 GitHub Pages 域名格式：`https://username.github.io/repository-name/`
