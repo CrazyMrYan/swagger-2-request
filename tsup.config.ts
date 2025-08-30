@@ -8,11 +8,16 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  splitting: false,
+  splitting: true,
   sourcemap: false,
-  minify: false,
+  minify: true,
+  minifyIdentifiers: true,
+  minifySyntax: true,
+  minifyWhitespace: true,
   target: 'node16',
   outDir: 'dist',
   external: ['axios', 'lodash-es', 'express', 'swagger-parser'],
-  shims: true
+  shims: true,
+  treeshake: true,
+  bundle: true
 });
