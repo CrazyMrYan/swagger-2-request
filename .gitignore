@@ -115,4 +115,4 @@ generated/
 .publish/
 /docs/.vitepress/cache
 .vitepress/cache
-/examples/ 
+/examples/*
