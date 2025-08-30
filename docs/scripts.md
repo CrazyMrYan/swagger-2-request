@@ -10,6 +10,7 @@
     "api:generate": "s2r generate --config .s2r.cjs",
     "api:generate:clean": "s2r generate --config .s2r.cjs --clean",
     "api:generate:types": "s2r generate --config .s2r.cjs --types-only",
+    "api:generate:force": "s2r generate --config .s2r.cjs --force",
     "api:mock": "s2r mock --config .s2r.cjs --port 3001",
     "api:mock:ui": "s2r mock --config .s2r.cjs --port 3001 && open http://localhost:3001/docs",
     "api:validate": "s2r validate --config .s2r.cjs",
@@ -41,6 +42,12 @@ npm run api:generate:clean
 仅生成类型定义文件：
 ```bash
 npm run api:generate:types
+```
+
+#### `api:generate:force`
+强制覆盖所有文件（包括 client 文件）：
+```bash
+npm run api:generate:force
 ```
 
 ### Mock 服务脚本

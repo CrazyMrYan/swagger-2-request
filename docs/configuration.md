@@ -36,7 +36,10 @@ module.exports = {
     cleanOutput: false,
     
     // 排除覆盖的文件列表，支持通配符
-    excludeFiles: []
+    excludeFiles: [],
+    
+    // 是否强制覆盖所有文件，包括 client 文件
+    forceOverride: false
   }
 };
 ```
@@ -60,7 +63,8 @@ module.exports = {
     includeComments: true,
     generateTypes: true,
     cleanOutput: false,
-    excludeFiles: ['*test*', 'custom-*.ts']
+    excludeFiles: ['*test*', 'custom-*.ts'],
+    forceOverride: false
   },
   
   // 运行时配置
@@ -124,6 +128,7 @@ module.exports = {
 | `generateTypes` | `boolean` | `true` | 是否生成类型定义 |
 | `cleanOutput` | `boolean` | `false` | 是否清理输出目录 |
 | `excludeFiles` | `string[]` | `[]` | 排除覆盖的文件列表 |
+| `forceOverride` | `boolean` | `false` | 是否强制覆盖所有文件，包括 client 文件 |
 
 ### runtime 配置
 

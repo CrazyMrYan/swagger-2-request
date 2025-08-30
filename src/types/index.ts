@@ -81,6 +81,8 @@ export interface GenerationConfig {
   generateTypes: boolean;
   cleanOutput: boolean;
   excludeFiles: string[];
+  /** 是否强制覆盖所有文件，包括 client 文件 */
+  forceOverride?: boolean;
 }
 
 // 运行时配置

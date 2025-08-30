@@ -60,6 +60,40 @@ module.exports = {
 
 **注意**：命令行参数会覆盖配置文件中的设置。
 
+### Client 文件保护机制
+
+S2R 提供了特殊的 client 文件保护机制。默认情况下，如果 `client.ts` 或 `client.js` 文件已存在，S2R 不会覆盖这些文件，以保护用户的自定义配置：
+
+```bash
+# 默认行为：保护已存在的 client 文件
+s2r generate ./swagger.json -o ./src/api
+# 输出：⚠ 跳过已存在的文件: client.ts
+
+# 强制覆盖所有文件（包括 client 文件）
+s2r generate ./swagger.json -o ./src/api --force
+# 输出：✓ 覆盖 client.ts
+```
+
+配置文件方式：
+
+```javascript
+// .s2r.cjs
+module.exports = {
+  generation: {
+    // 默认为 false，保护 client 文件
+    forceOverride: false,
+    
+    // 设置为 true 时，覆盖所有文件（包括 client 文件）
+    // forceOverride: true
+  }
+};
+```
+
+**使用场景**：
+- **开发阶段**：使用默认设置保护自定义的 client 配置
+- **CI/CD 环境**：使用 `--force` 确保生成最新的代码
+- **团队协作**：避免意外覆盖团队成员的自定义配置
+
 ### 完整配置文件
 
 ```javascript
@@ -74,7 +108,8 @@ module.exports = {
     functionNaming: 'pathMethod',
     includeComments: true,
     generateTypes: true,
-    excludeFiles: ['*test*', 'custom-client.ts'] // 指定不覆盖的文件列表
+    excludeFiles: ['*test*', 'custom-client.ts'], // 指定不覆盖的文件列表
+    forceOverride: false // 是否强制覆盖所有文件，包括 client 文件
   },
   
   runtime: {

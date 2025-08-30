@@ -32,6 +32,7 @@ program
   .option('--clean', 'Clean output directory before generation')
   .option('--types-only', 'Generate only TypeScript types')
   .option('--exclude <files>', 'Files to exclude from overwriting (comma-separated), supports wildcards')
+  .option('-f, --force', 'Force overwrite all files, including client files')
   .option('--verbose', 'Enable verbose logging')
   .action(async (source, options) => {
     try {

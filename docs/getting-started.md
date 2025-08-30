@@ -24,6 +24,9 @@ s2r generate ./swagger.json --exclude "client.ts,utils.ts"
 
 # 使用通配符排除文件
 s2r generate ./swagger.json --exclude "*test*,*mock*"
+
+# 强制覆盖所有文件（包括 client 文件）
+s2r generate ./swagger.json --force
 ```
 
 ## 使用生成的代码
