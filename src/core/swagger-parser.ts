@@ -277,6 +277,7 @@ export class SwaggerAnalyzer {
         headers: response.headers,
       };
 
+      // 处理 OpenAPI 3.0+ 格式
       if (response.content) {
         responseDefinition.content = Object.fromEntries(
           Object.entries(response.content).map(([mediaType, mediaTypeObject]) => {
@@ -291,6 +292,17 @@ export class SwaggerAnalyzer {
             ];
           })
         );
+      }
+      // 处理 Swagger 2.0 格式
+      else if ((response as any).schema) {
+        responseDefinition.content = {
+          'application/json': {
+            schema: (response as any).schema,
+            example: (response as any).examples?.['application/json'],
+          },
+        };
+        // 直接在响应定义上添加schema字段以兼容mock服务器
+        (responseDefinition as any).schema = (response as any).schema;
       }
 
       responses.push(responseDefinition);

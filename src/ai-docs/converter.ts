@@ -192,13 +192,20 @@ export class AIDocConverter {
   private convertResponses(responses: any[]): AIResponse[] {
     return responses.map(response => {
       const jsonContent = response.content?.['application/json'];
+      let example = jsonContent?.example;
+      
+      // 如果没有现成的示例，从schema生成一个
+      if (!example && jsonContent?.schema) {
+        example = this.generateExampleFromSchema(jsonContent.schema);
+      }
+      
       return {
         statusCode: response.statusCode,
         description: response.description,
         contentType: 'application/json',
         type: this.getTypeString(jsonContent?.schema),
         schema: jsonContent?.schema ? this.convertSchema(jsonContent.schema) : undefined,
-        example: jsonContent?.example,
+        example: example,
       };
     });
   }
@@ -834,6 +841,19 @@ apiClient.getInterceptorManager().addResponseInterceptor(
             lines.push(`- \`${param.name}\` (${param.type}) - ${required}: ${param.description || '无描述'}`);
           });
           lines.push('');
+        }
+
+        // 响应示例
+        if (endpoint.responses.length > 0) {
+          const successResponse = endpoint.responses.find((r: any) => r.statusCode === '200' || r.statusCode === '201');
+          if (successResponse && successResponse.example) {
+            lines.push('**响应示例**:');
+            lines.push('');
+            lines.push('```json');
+            lines.push(JSON.stringify(successResponse.example, null, 2));
+            lines.push('```');
+            lines.push('');
+          }
         }
 
         // 代码示例

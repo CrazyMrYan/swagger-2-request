@@ -255,13 +255,21 @@ export class MockServer {
       (r: any) => r.statusCode === '200' || r.statusCode === '201'
     );
 
-    if (!successResponse?.content) {
+    if (!successResponse) {
       return { message: 'Success', timestamp: new Date().toISOString() };
     }
 
-    const jsonContent = successResponse.content['application/json'];
-    if (jsonContent?.schema) {
-      return this.generateMockData(jsonContent.schema);
+    // 处理 OpenAPI 3.0 格式
+    if (successResponse.content) {
+      const jsonContent = successResponse.content['application/json'];
+      if (jsonContent?.schema) {
+        return this.generateMockData(jsonContent.schema);
+      }
+    }
+
+    // 处理 Swagger 2.0 格式
+    if (successResponse.schema) {
+      return this.generateMockData(successResponse.schema);
     }
 
     return { message: 'Success' };
