@@ -33,40 +33,51 @@ export class GenerateCommand {
   /**
    * 执行代码生成命令
    */
-  async execute(source: string, options: GenerateOptions): Promise<void> {
+  async execute(source: string | undefined, options: GenerateOptions): Promise<void> {
     const spinner = ora('正在生成 API 客户端...').start();
 
     try {
       // 1. 加载配置
       const config = await this.loadConfig(options);
       
+      // 2. 确定 Swagger 文档源
+      const swaggerSource = source || config.swagger?.source;
+      if (!swaggerSource) {
+        spinner.fail(chalk.red('❌ 缺少 Swagger 文档源'));
+        console.error(chalk.red('请通过以下方式之一指定 Swagger 文档源：'));
+        console.error(chalk.gray('  1. 命令行参数: s2r generate <source>'));
+        console.error(chalk.gray('  2. 配置文件: 在 .s2r.json 中设置 swagger.source'));
+        throw new Error('missing required argument \'source\'');
+      }
+      
       if (options.verbose) {
         console.log(chalk.gray('配置：'), config);
+        console.log(chalk.gray('Swagger 源：'), swaggerSource);
       }
 
-      // 2. 解析 Swagger 文档
+      // 3. 解析 Swagger 文档
       spinner.text = '正在解析 Swagger 文档...';
-      const parsedSwagger = await this.analyzer.parseSwagger(source);
+      const parsedSwagger = await this.analyzer.parseSwagger(swaggerSource);
       
       if (options.verbose) {
         console.log(chalk.gray(`发现 ${parsedSwagger.paths.length} 个 API 端点`));
       }
 
-      // 3. 清理输出目录
+      // 4. 清理输出目录
       if (config.generation.cleanOutput) {
         spinner.text = '正在清理输出目录...';
         await this.cleanOutputDirectory(config.generation.outputDir);
       }
 
-      // 4. 生成代码文件
+      // 5. 生成代码文件
       spinner.text = '正在生成代码文件...';
       const generatedFiles = this.generator.generateAPIClient(parsedSwagger, config.generation);
 
-      // 5. 写入文件
+      // 6. 写入文件
       spinner.text = '正在写入文件...';
       const writtenFiles = await this.writeFiles(generatedFiles, config.generation.outputDir, config.generation);
 
-      // 6. 生成工具文件
+      // 7. 生成工具文件
       await this.generateUtilsFile(config.generation.outputDir);
 
       spinner.succeed(chalk.green('✅ API 客户端生成成功！'));
@@ -108,7 +119,7 @@ export class GenerateCommand {
   /**
    * 加载配置文件
    */
-  private async loadConfig(options: GenerateOptions): Promise<{ generation: GenerationConfig }> {
+  private async loadConfig(options: GenerateOptions): Promise<{ generation: GenerationConfig; swagger?: { source?: string; version?: string } }> {
     let config: Partial<S2RConfig> = {};
 
     // 确定配置文件路径
@@ -160,7 +171,10 @@ export class GenerateCommand {
       forceOverride: options.force ?? (config.generation?.forceOverride ?? false),
     };
 
-    return { generation };
+    return { 
+      generation,
+      swagger: config.swagger 
+    };
   }
 
   /**
