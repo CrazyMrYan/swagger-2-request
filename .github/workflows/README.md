@@ -24,13 +24,14 @@
 
 ### 配置要求
 
-1. **启用 GitHub Pages**：
-   - 进入仓库设置 → Pages
-   - Source 选择 "GitHub Actions"
+1. **GitHub Pages 自动启用**：
+   - 工作流会自动启用 GitHub Pages（如果尚未启用）
+   - 如果遇到权限问题，请手动进入仓库设置 → Pages，Source 选择 "GitHub Actions"
 
 2. **权限设置**：
    - 工作流已配置必要的权限
    - 确保仓库设置中允许 GitHub Actions 写入
+   - 确保 GITHUB_TOKEN 有足够权限操作 Pages
 
 ### 访问地址
 
@@ -42,3 +43,15 @@
 - VitePress 配置中已设置 `base: '/s2r/'` 以适配 GitHub Pages
 - 使用 pnpm 作为包管理器
 - 支持 `lastUpdated` 功能（通过 `fetch-depth: 0` 获取完整历史）
+
+### 故障排除
+
+如果遇到 "Get Pages site failed" 错误：
+
+1. **检查仓库权限**：确保你有仓库的管理员权限
+2. **手动启用 Pages**：
+   - 进入仓库设置 → Pages
+   - Source 选择 "GitHub Actions"
+   - 保存设置后重新运行工作流
+3. **检查分支保护**：确保主分支允许 GitHub Actions 写入
+4. **验证 token 权限**：确保 GITHUB_TOKEN 有 `pages: write` 和 `id-token: write` 权限

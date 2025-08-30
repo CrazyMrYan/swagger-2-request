@@ -51,6 +51,11 @@ jobs:
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          # Automatically enable Pages if not already enabled
+          enablement: true
+          # Use the default token
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
