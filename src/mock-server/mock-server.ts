@@ -7,6 +7,7 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { OpenAPIV3 } from 'openapi-types';
+import jsf from 'json-schema-faker';
 import { SwaggerAnalyzer } from '../core/swagger-parser';
 import type { ParsedSwagger } from '../types';
 
@@ -251,8 +252,12 @@ export class MockServer {
    * 生成 Mock 响应数据
    */
   private generateMockResponse(endpoint: any): any {
+    // 查找成功状态码的响应（2xx）
     const successResponse = endpoint.responses.find(
-      (r: any) => r.statusCode === '200' || r.statusCode === '201'
+      (r: any) => {
+        const statusCode = parseInt(r.statusCode);
+        return statusCode >= 200 && statusCode < 300;
+      }
     );
 
     if (!successResponse) {
@@ -260,42 +265,179 @@ export class MockServer {
     }
 
     // 处理 OpenAPI 3.0 格式
-    if (successResponse.content) {
-      const jsonContent = successResponse.content['application/json'];
-      if (jsonContent?.schema) {
-        return this.generateMockData(jsonContent.schema);
-      }
-    }
+     if (successResponse.content) {
+       // 尝试多种content type
+       const contentTypes = ['application/json', '*/*', 'application/*', Object.keys(successResponse.content)[0]];
+       
+       for (const contentType of contentTypes) {
+         const content = successResponse.content[contentType];
+         if (content?.schema) {
+           return this.generateMockData(content.schema);
+         }
+       }
+     }
 
     // 处理 Swagger 2.0 格式
     if (successResponse.schema) {
       return this.generateMockData(successResponse.schema);
     }
+    
+    // 如果有响应定义但没有schema，尝试生成基于HTTP方法的默认响应
+    const method = endpoint.method?.toLowerCase();
+    if (method === 'post' || method === 'put' || method === 'patch') {
+      // 对于创建/更新操作，返回一个包含ID的对象
+      return {
+        id: Math.floor(Math.random() * 1000) + 1,
+        message: 'Success',
+        timestamp: new Date().toISOString()
+      };
+    }
 
-    return { message: 'Success' };
+    return { message: 'Success', timestamp: new Date().toISOString() };
   }
 
   /**
    * 根据 Schema 生成 Mock 数据
    */
-  private generateMockData(schema: any): any {
+  private generateMockData(schema: any, visited: Set<string> = new Set()): any {
     if (!schema) return null;
 
     // 处理引用
     if (schema.$ref) {
       const refName = schema.$ref.split('/').pop();
+      
+      // 检测循环引用
+      if (visited.has(refName)) {
+        return { _circular_ref: refName };
+      }
+      
       const refSchema = this.parsedSwagger.components.schemas?.[refName];
       if (refSchema) {
-        return this.generateMockData(refSchema);
+        visited.add(refName);
+        const result = this.generateMockData(refSchema, visited);
+        visited.delete(refName);
+        return result;
       }
       return null;
     }
 
+    try {
+      // 使用 json-schema-faker 生成专业的 mock 数据
+      // 配置 jsf 选项
+      jsf.option({
+        alwaysFakeOptionals: true,
+        useDefaultValue: true,
+        useExamplesValue: true,
+        failOnInvalidTypes: false,
+        failOnInvalidFormat: false,
+        maxLength: 20,
+        maxItems: 5,
+        minItems: 1
+      });
+
+      // 创建一个深拷贝的 schema，避免修改原始 schema
+      const clonedSchema = this.resolveCircularReferences(JSON.parse(JSON.stringify(schema)), visited);
+      
+      return jsf.generate(clonedSchema);
+    } catch (error) {
+      console.warn('JSF generation failed, falling back to manual generation:', error);
+      // 如果 json-schema-faker 失败，回退到原来的方法
+      return this.fallbackMockGeneration(schema, visited);
+    }
+  }
+
+  /**
+   * 解决循环引用问题，将循环引用替换为简单类型
+   */
+  private resolveCircularReferences(schema: any, visited: Set<string> = new Set()): any {
+    if (!schema || typeof schema !== 'object') return schema;
+
+    // 处理 $ref
+    if (schema.$ref) {
+      const refName = schema.$ref.split('/').pop();
+      if (visited.has(refName)) {
+        // 循环引用，根据字段名推断类型
+        if (refName.toLowerCase().includes('count') || refName.toLowerCase().includes('sql')) {
+          return { type: 'string', example: 'mock_value' };
+        }
+        return { type: 'string', example: 'circular_ref' };
+      }
+      
+      const refSchema = this.parsedSwagger.components.schemas?.[refName];
+      if (refSchema) {
+        visited.add(refName);
+        const resolved = this.resolveCircularReferences(refSchema, visited);
+        visited.delete(refName);
+        return resolved;
+      }
+    }
+
+    // 处理对象属性
+    if (schema.properties) {
+      const newProperties: any = {};
+      Object.keys(schema.properties).forEach(key => {
+        const prop = schema.properties[key];
+        
+        // 跳过 writeOnly 字段
+        if (prop.writeOnly === true) {
+          return;
+        }
+        
+        // 处理循环引用的特殊字段
+        if (prop.$ref) {
+          const refName = prop.$ref.split('/').pop();
+          if (visited.has(refName)) {
+            // 根据字段名推断合适的类型
+            if (key.toLowerCase().includes('count')) {
+              newProperties[key] = { type: 'integer', minimum: 0, maximum: 1000 };
+            } else if (key.toLowerCase().includes('sql')) {
+              newProperties[key] = { type: 'string', example: 'SELECT * FROM table' };
+            } else {
+              newProperties[key] = { type: 'string', example: 'mock_value' };
+            }
+            return;
+          }
+        }
+        
+        newProperties[key] = this.resolveCircularReferences(prop, visited);
+      });
+      
+      // 更新 required 数组，移除 writeOnly 字段
+      let newRequired = schema.required;
+      if (newRequired && schema.properties) {
+        newRequired = newRequired.filter((req: string) => {
+          const prop = schema.properties[req];
+          return !prop || prop.writeOnly !== true;
+        });
+      }
+      
+      return {
+        ...schema,
+        properties: newProperties,
+        required: newRequired
+      };
+    }
+
+    // 处理数组
+    if (schema.items) {
+      return {
+        ...schema,
+        items: this.resolveCircularReferences(schema.items, visited)
+      };
+    }
+
+    return schema;
+  }
+
+  /**
+   * 回退的 Mock 数据生成方法
+   */
+  private fallbackMockGeneration(schema: any, visited: Set<string> = new Set()): any {
     switch (schema.type) {
       case 'object':
-        return this.generateMockObject(schema);
+        return this.generateMockObject(schema, visited);
       case 'array':
-        return this.generateMockArray(schema);
+        return this.generateMockArray(schema, visited);
       case 'string':
         return this.generateMockString(schema);
       case 'number':
@@ -311,15 +453,20 @@ export class MockServer {
   /**
    * 生成 Mock 对象
    */
-  private generateMockObject(schema: any): any {
+  private generateMockObject(schema: any, visited: Set<string> = new Set()): any {
     const result: any = {};
     const { properties = {}, required = [] } = schema;
 
     // 为每个属性生成数据
     Object.entries(properties).forEach(([key, propSchema]: [string, any]) => {
-      // 必需字段总是生成，可选字段有 80% 概率生成
-      if (required.includes(key) || Math.random() > 0.2) {
-        result[key] = this.generateMockData(propSchema);
+      // 跳过writeOnly字段（这些字段只用于请求，不应该在响应中出现）
+      if (propSchema.writeOnly === true) {
+        return;
+      }
+      
+      // 必需字段总是生成，可选字段有 95% 概率生成（提供更完整的mock数据）
+      if (required.includes(key) || Math.random() > 0.05) {
+        result[key] = this.generateMockData(propSchema, visited);
       }
     });
 
@@ -329,13 +476,13 @@ export class MockServer {
   /**
    * 生成 Mock 数组
    */
-  private generateMockArray(schema: any): any[] {
+  private generateMockArray(schema: any, visited: Set<string> = new Set()): any[] {
     const length = Math.floor(Math.random() * 5) + 1; // 1-5 个元素
     const result = [];
 
     for (let i = 0; i < length; i++) {
       if (schema.items) {
-        result.push(this.generateMockData(schema.items));
+        result.push(this.generateMockData(schema.items, visited));
       } else {
         result.push(`item_${i}`);
       }
