@@ -23,7 +23,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024 S2R Team'
+      copyright: 'Copyright © 2025 CrazyMrYan'
     },
 
     search: {
