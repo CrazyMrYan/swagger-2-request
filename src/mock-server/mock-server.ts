@@ -160,17 +160,25 @@ export class MockServer {
    */
   private setupSwaggerUI(): void {
     if (this.options.ui && this.swagger) {
-      // 更新服务器 URL 为当前 Mock 服务器
-      const mockSwagger = {
-        ...this.swagger,
-        servers: [
+      // 创建修改后的 Swagger 文档副本
+      const mockSwagger: any = { ...this.swagger };
+      
+      // 检查是否为 Swagger 2.0 格式
+      if (mockSwagger.swagger && mockSwagger.swagger.startsWith('2.')) {
+        // Swagger 2.0 格式：修改 host, basePath, schemes
+        mockSwagger.host = `localhost:${this.options.port}`;
+        mockSwagger.basePath = mockSwagger.basePath || '/';
+        mockSwagger.schemes = ['http'];
+      } else {
+        // OpenAPI 3.x 格式：修改 servers 数组
+        mockSwagger.servers = [
           {
             url: `http://localhost:${this.options.port}`,
             description: 'Mock Server',
           },
           ...(this.swagger.servers || []),
-        ],
-      };
+        ];
+      }
 
       this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(mockSwagger, {
         customCss: '.swagger-ui .topbar { display: none }',
@@ -189,16 +197,27 @@ export class MockServer {
    * 设置 Mock 端点
    */
   private setupMockEndpoints(): void {
+    console.log(`🔧 正在注册 ${this.parsedSwagger.paths.length} 个 API 端点...`);
+    
+    // 获取 basePath（Swagger 2.0）
+    const swaggerDoc = this.swagger as any;
+    const basePath = swaggerDoc.basePath || '';
+    console.log(`📂 Base Path: ${basePath || '(无)'}`);
+    
     this.parsedSwagger.paths.forEach(endpoint => {
       const expressPath = this.convertSwaggerPathToExpress(endpoint.path);
+      const fullPath = basePath + expressPath;
       const method = endpoint.method.toLowerCase() as keyof express.Application;
+      
+      console.log(`📍 注册路由: ${endpoint.method.toUpperCase()} ${fullPath}`);
 
       if (typeof this.app[method] === 'function') {
-        (this.app[method] as any)(expressPath, (req: express.Request, res: express.Response) => {
+        (this.app[method] as any)(fullPath, (req: express.Request, res: express.Response) => {
           this.handleMockRequest(req, res, endpoint);
         });
       }
     });
+    console.log(`✅ 所有 API 端点注册完成`);
   }
 
   /**
