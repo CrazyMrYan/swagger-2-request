@@ -28,7 +28,7 @@ program
   .alias('gen')
   .description('Generate TypeScript API client from Swagger document')
   .argument('[source]', 'Swagger document path or URL (optional if specified in config file)')
-  .option('-o, --output <dir>', 'Output directory', './src/api')
+  .option('-o, --output <dir>', 'Output directory (default: ./src/api)')
   .option('-c, --config <file>', 'Configuration file path')
   .option('--clean', 'Clean output directory before generation')
   .option('--types-only', 'Generate only TypeScript types')
