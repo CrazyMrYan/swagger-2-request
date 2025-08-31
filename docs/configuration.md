@@ -7,39 +7,21 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
 ### 基础配置
 
 ```json
-// .s2r.json
 {
-  // Swagger 文档配置
-  swagger: {
-    // Swagger 文档地址或本地文件路径
-    source: 'https://api.example.com/swagger.json'
+  "_comment": "S2R 基础配置文件",
+  "swagger": {
+    "source": "https://api.example.com/swagger.json",
+    "version": "3.0"
   },
-  
-  // 代码生成配置
-  generation: {
-    // 输出目录
-    outputDir: './src/api',
-    
-    // 是否生成 TypeScript 代码
-    typescript: true,
-    
-    // 函数命名方式: 'pathMethod' | 'operationId'
-    functionNaming: 'pathMethod',
-    
-    // 是否包含注释
-    includeComments: true,
-    
-    // 是否生成类型定义
-    generateTypes: true,
-    
-    // 是否清理输出目录
-    cleanOutput: false,
-    
-    // 排除覆盖的文件列表，支持通配符
-    excludeFiles: [],
-    
-    // 是否强制覆盖所有文件，包括 client 文件
-    forceOverride: false
+  "generation": {
+    "outputDir": "./src/api",
+    "typescript": true,
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": [],
+    "forceOverride": false
   }
 }
 ```
@@ -47,17 +29,12 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
 ### 完整配置选项
 
 ```json
-// .s2r.json
 {
-  "_comment": "S2R 配置文件",
-  
-  // Swagger 文档配置
+  "_comment": "S2R 完整配置文件",
   "swagger": {
-    "source": "https://api.example.com/swagger.json",
+    "source": "https://petstore.swagger.io/v2/swagger.json",
     "version": "3.0"
   },
-  
-  // 代码生成配置
   "generation": {
     "outputDir": "./src/api",
     "typescript": true,
@@ -68,16 +45,12 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
     "excludeFiles": ["*test*", "custom-*.ts"],
     "forceOverride": false
   },
-  
-  // 运行时配置
   "runtime": {
     "baseURL": "https://api.example.com",
     "timeout": 10000,
     "validateParams": true,
     "filterParams": true
   },
-  
-  // Mock 服务配置
   "mock": {
     "enabled": true,
     "port": 3001,
@@ -85,8 +58,6 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
     "enableUI": true,
     "customResponses": "./mock-responses"
   },
-  
-  // 拦截器配置
   "interceptors": {
     "request": {
       "enabled": true
@@ -95,8 +66,6 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
       "enabled": true
     }
   },
-  
-  // NPM 包配置
   "package": {
     "name": "@company/api-client",
     "version": "1.0.0",

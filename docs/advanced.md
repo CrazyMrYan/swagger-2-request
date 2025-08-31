@@ -44,18 +44,18 @@ s2r generate ./swagger.json --exclude "*test*,*mock*,custom-*"
 
 配置文件方式：
 
-```javascript
-// .s2r.cjs
-module.exports = {
-  generation: {
-    excludeFiles: [
-      '*test*',           // 排除所有包含 test 的文件
-      'custom-client.ts', // 排除特定文件
-      '*interceptor*',    // 排除所有包含 interceptor 的文件
-      '*.config.ts'       // 排除所有 .config.ts 文件
+```json
+{
+  "_comment": "S2R 配置文件 - 文件排除示例",
+  "generation": {
+    "excludeFiles": [
+      "*test*",
+      "custom-client.ts",
+      "*interceptor*",
+      "*.config.ts"
     ]
   }
-};
+}
 ```
 
 **注意**：命令行参数会覆盖配置文件中的设置。
@@ -77,14 +77,10 @@ s2r generate ./swagger.json -o ./src/api --force
 配置文件方式：
 
 ```json
-// .s2r.json
 {
+  "_comment": "S2R 配置文件 - 文件保护示例",
   "generation": {
-    // 默认为 false，保护 client 文件
-    "forceOverride": false,
-    
-    // 设置为 true 时，覆盖所有文件（包括 client 文件）
-    // "forceOverride": true
+    "forceOverride": false
   }
 }
 ```
@@ -96,41 +92,37 @@ s2r generate ./swagger.json -o ./src/api --force
 
 ### 完整配置文件
 
-```javascript
-// .s2r.cjs
-module.exports = {
-  swagger: {
-    source: './swagger.json'
+```json
+{
+  "_comment": "S2R 高级配置示例",
+  "swagger": {
+    "source": "https://petstore.swagger.io/v2/swagger.json"
   },
-  
-  generation: {
-    outputDir: './src/api',
-    functionNaming: 'pathMethod',
-    includeComments: true,
-    generateTypes: true,
-    excludeFiles: ['*test*', 'custom-client.ts'], // 指定不覆盖的文件列表
-    forceOverride: false // 是否强制覆盖所有文件，包括 client 文件
+  "generation": {
+    "outputDir": "./src/api",
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "excludeFiles": ["*test*", "custom-client.ts"],
+    "forceOverride": false
   },
-  
-  runtime: {
-    timeout: 10000,
-    validateParams: true,
-    filterParams: true
+  "runtime": {
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
   },
-  
-  mock: {
-    enabled: true,
-    port: 3001,
-    delay: 200,
-    ui: true
+  "mock": {
+    "enabled": true,
+    "port": 3001,
+    "delay": 200,
+    "enableUI": true
   },
-  
-  package: {
-    name: '@company/api-client',
-    version: '1.0.0',
-    description: 'Generated API client'
+  "package": {
+    "name": "@company/api-client",
+    "version": "1.0.0",
+    "description": "Generated API client"
   }
-};
+}
 ```
 
 ### 环境变量配置
@@ -138,7 +130,7 @@ module.exports = {
 ```bash
 # 设置环境变量
 export API_BASE_URL=https://api.example.com
-export S2R_CONFIG_PATH=./config/.s2r.cjs
+export S2R_CONFIG_PATH=./config/.s2r.json
 export S2R_OUTPUT_DIR=./src/generated
 ```
 

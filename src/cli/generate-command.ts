@@ -298,7 +298,7 @@ export class GenerateCommand {
  */
 
 /**
- * 根据允许的键过滤查询参数
+ * 根据允许的键过滤查询参数，并处理数组参数
  */
 export function filterQueryParams(
   params: Record<string, any>,
@@ -321,17 +321,28 @@ export function filterQueryParams(
     filtered = result;
   }
 
-  // 移除 undefined, null, 空字符串的值
+  // 移除 undefined, null, 空字符串的值，并处理数组参数
   return Object.fromEntries(
-    Object.entries(filtered).filter(([, value]) => {
-      if (value === undefined || value === null) {
-        return false;
-      }
-      if (typeof value === 'string' && value.trim() === '') {
-        return false;
-      }
-      return true;
-    })
+    Object.entries(filtered)
+      .filter(([, value]) => {
+        if (value === undefined || value === null) {
+          return false;
+        }
+        if (typeof value === 'string' && value.trim() === '') {
+          return false;
+        }
+        if (Array.isArray(value) && value.length === 0) {
+          return false;
+        }
+        return true;
+      })
+      .map(([key, value]) => {
+        // 将数组参数转换为逗号分隔的字符串
+        if (Array.isArray(value)) {
+          return [key, value.join(',')];
+        }
+        return [key, value];
+      })
   );
 }
 

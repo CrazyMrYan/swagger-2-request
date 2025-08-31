@@ -155,11 +155,11 @@ on:
   push:
     paths: 
       - 'swagger.json'
-      - '.s2r.cjs'
+      - '.s2r.json'
   pull_request:
     paths:
       - 'swagger.json'
-      - '.s2r.cjs'
+      - '.s2r.json'
 
 jobs:
   generate:
@@ -224,7 +224,7 @@ validate_swagger:
   only:
     changes:
       - swagger.json
-      - .s2r.cjs
+      - .s2r.json
 
 generate_client:
   stage: generate
@@ -240,7 +240,7 @@ generate_client:
   only:
     changes:
       - swagger.json
-      - .s2r.cjs
+      - .s2r.json
 
 test_client:
   stage: test

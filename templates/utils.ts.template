@@ -5,7 +5,7 @@
 import { pick, omit } from 'lodash-es';
 
 /**
- * 根据 schema 过滤查询参数
+ * 根据 schema 过滤查询参数，并处理数组参数
  * @param params 原始参数
  * @param schema 参数 schema 定义
  * @returns 过滤后的参数
@@ -19,11 +19,20 @@ export function filterQueryParams(
   const allowedKeys = schema.map(s => s.name);
   const filtered = pick(params, allowedKeys);
 
-  // 移除 undefined 和 null 值
+  // 移除 undefined 和 null 值，并处理数组参数
   return Object.fromEntries(
-    Object.entries(filtered).filter(([_, value]) => 
-      value !== undefined && value !== null
-    )
+    Object.entries(filtered)
+      .filter(([_, value]) => 
+        value !== undefined && value !== null && 
+        !(Array.isArray(value) && value.length === 0)
+      )
+      .map(([key, value]) => {
+        // 将数组参数转换为逗号分隔的字符串
+        if (Array.isArray(value)) {
+          return [key, value.join(',')];
+        }
+        return [key, value];
+      })
   );
 }
 

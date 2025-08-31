@@ -32,12 +32,26 @@ s2r generate ./swagger.json --force
 ## 使用生成的代码
 
 ```typescript
-// 导入生成的函数
-import { petPetIdGet, petPost } from './src/api';
+// 导入生成的函数和类型
+import { petFindByStatusGet, petPost, petPetIdGet } from './src/api';
+import type { Pet } from './src/api/types';
 
-// 调用 API
-const pet = await petPetIdGet('123');
-const newPet = await petPost({ name: 'Fluffy', photoUrls: [] });
+// 查询宠物
+const pets = await petFindByStatusGet({ status: 'available' });
+
+// 根据 ID 获取宠物
+const pet = await petPetIdGet({ petId: 123 });
+
+// 添加宠物
+const newPet: Pet = {
+  id: Date.now(),
+  name: 'Fluffy',
+  category: { id: 1, name: '猫咪' },
+  photoUrls: [],
+  tags: [],
+  status: 'available'
+};
+const result = await petPost({ data: newPet });
 ```
 
 ## 启动 Mock 服务
@@ -56,13 +70,40 @@ open http://localhost:3001/docs
 
 ```json
 {
+  "_comment": "S2R 配置文件",
   "swagger": {
-    "source": "./swagger.json"
+    "source": "https://petstore.swagger.io/v2/swagger.json",
+    "version": "3.0"
   },
   "generation": {
     "outputDir": "./src/api",
+    "typescript": true,
     "functionNaming": "pathMethod",
-    "excludeFiles": [] // 指定不覆盖的文件列表，支持通配符
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": [],
+    "forceOverride": false
+  },
+  "runtime": {
+    "baseURL": "https://api.example.com",
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
+  },
+  "mock": {
+    "enabled": true,
+    "port": 3001,
+    "delay": 0,
+    "enableUI": true
+  },
+  "interceptors": {
+    "request": {
+      "enabled": true
+    },
+    "response": {
+      "enabled": true
+    }
   }
 }
 ```
@@ -70,7 +111,11 @@ open http://localhost:3001/docs
 然后运行：
 
 ```bash
-s2r generate --config ./s2r.config.js
+# 使用配置文件生成（无需指定 source）
+s2r generate --config ./.s2r.json
+
+# 或者直接运行（自动查找 .s2r.json）
+s2r generate
 ```
 
 ## 下一步

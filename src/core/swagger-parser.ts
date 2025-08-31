@@ -240,11 +240,43 @@ export class SwaggerAnalyzer {
         return;
       }
 
+      // 处理 Swagger 2.0 和 OpenAPI 3.x 的参数格式差异
+      let schema: any = {};
+      
+      if (param.schema) {
+        // OpenAPI 3.x 格式
+        schema = param.schema;
+      } else {
+        // Swagger 2.0 格式，参数类型直接在参数对象上
+        const swagger2Param = param as any;
+        if (swagger2Param.type) {
+          schema = {
+            type: swagger2Param.type,
+            format: swagger2Param.format,
+            enum: swagger2Param.enum,
+            items: swagger2Param.items,
+            minimum: swagger2Param.minimum,
+            maximum: swagger2Param.maximum,
+            minLength: swagger2Param.minLength,
+            maxLength: swagger2Param.maxLength,
+            pattern: swagger2Param.pattern,
+            default: swagger2Param.default,
+          };
+          
+          // 移除 undefined 值
+          Object.keys(schema).forEach(key => {
+            if (schema[key] === undefined) {
+              delete schema[key];
+            }
+          });
+        }
+      }
+
       const parameter: Parameter = {
         name: param.name,
         in: param.in as 'query' | 'path' | 'header' | 'cookie',
         required: param.required || param.in === 'path',
-        schema: param.schema || {},
+        schema,
         description: param.description,
       };
 

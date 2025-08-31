@@ -51,11 +51,22 @@ s2r generate ./swagger.json
 ### 3. 使用生成的代码
 
 ```typescript
-import { apiUsersGet, apiUsersPost } from './src/api';
+import { petFindByStatusGet, petPost } from './src/api';
+import type { Pet } from './src/api/types';
 
-// 调用 API
-const users = await apiUsersGet({ page: 1, limit: 10 });
-const newUser = await apiUsersPost({ name: 'John', email: 'john@example.com' });
+// 查询宠物
+const pets = await petFindByStatusGet({ status: 'available' });
+
+// 添加宠物
+const newPet: Pet = {
+  id: Date.now(),
+  name: 'Fluffy',
+  category: { id: 1, name: '猫咪' },
+  photoUrls: [],
+  tags: [],
+  status: 'available'
+};
+const result = await petPost({ data: newPet });
 ```
 
 ### 4. 启动 Mock 服务
@@ -73,44 +84,50 @@ s2r mock ./swagger.json --port 3000
 ```json
 {
   "_comment": "S2R 配置文件",
-  
-  // 代码生成配置
-  "generation": {
-    // 输出目录
-    "outputDir": "./src/api",
-    
-    // 是否生成 TypeScript 代码
-    "typescript": true,
-    
-    // 函数命名方式: 'pathMethod' | 'operationId'
-    "functionNaming": "pathMethod",
-    
-    // 是否包含注释
-    "includeComments": true,
-    
-    // 是否生成类型定义
-    "generateTypes": true,
-    
-    // 是否清理输出目录
-    "cleanOutput": false,
-    
-    // 排除覆盖的文件列表，支持通配符
-    // 例如: ["*interceptor*", "custom.ts"] 表示不覆盖包含 interceptor 的文件和 custom.ts 文件
-    // 默认为空数组，表示覆盖所有文件
-    "excludeFiles": []
+  "swagger": {
+    "source": "https://petstore.swagger.io/v2/swagger.json",
+    "version": "3.0"
   },
-  
-  // Mock 服务配置
+  "generation": {
+    "outputDir": "./src/api",
+    "typescript": true,
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": [],
+    "forceOverride": false
+  },
+  "runtime": {
+    "baseURL": "https://api.example.com",
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
+  },
   "mock": {
+    "enabled": true,
     "port": 3001,
     "delay": 0,
-    "enableUI": true
+    "enableUI": true,
+    "customResponses": "./mock-responses"
   },
-  
-  // 拦截器配置
   "interceptors": {
-    "request": { "enabled": true },
-    "response": { "enabled": true }
+    "request": {
+      "enabled": true
+    },
+    "response": {
+      "enabled": true
+    }
+  },
+  "package": {
+    "name": "@company/api-client",
+    "version": "1.0.0",
+    "description": "Generated API client",
+    "repository": "https://github.com/company/api-client",
+    "private": false,
+    "publishConfig": {
+      "registry": "https://registry.npmjs.org"
+    }
   }
 }
 ```
