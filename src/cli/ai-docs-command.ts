@@ -99,11 +99,21 @@ export class AIDocsCommand {
       const result = await this.converter.generateAIDoc(swagger, config);
       spinner.succeed('✅ AI 文档生成成功');
 
-      // 6. 保存文档
-      await this.saveDocument(result, options.output);
+      // 6. 确定输出路径
+      let outputPath = options.output;
+      if (!outputPath || outputPath === './docs/api-ai.md') {
+        // 从配置文件读取输出路径
+        const s2rConfig = await this.loadConfig(options.config);
+        if (s2rConfig.aiDocs?.outputDir && s2rConfig.aiDocs?.filename) {
+          outputPath = path.join(s2rConfig.aiDocs.outputDir, s2rConfig.aiDocs.filename);
+        }
+      }
 
-      // 7. 显示结果
-      this.displayResults(result, options.output);
+      // 7. 保存文档
+      await this.saveDocument(result, outputPath);
+
+      // 8. 显示结果
+      this.displayResults(result, outputPath);
 
     } catch (error: any) {
       spinner.fail(`❌ AI 文档转换失败: ${error.message}`);
@@ -118,14 +128,9 @@ export class AIDocsCommand {
     let config: AIDocConfig = { ...defaultAIDocConfig };
 
     // 从配置文件读取
-    if (options.config) {
-      try {
-        const configContent = await fs.readFile(options.config, 'utf-8');
-        const fileConfig = JSON.parse(configContent);
-        config = { ...config, ...fileConfig.aiDocs };
-      } catch (error) {
-        console.warn(chalk.yellow(`⚠️ 无法读取配置文件: ${options.config}`));
-      }
+    const s2rConfig = await this.loadConfig(options.config);
+    if (s2rConfig.aiDocs) {
+      config = { ...config, ...s2rConfig.aiDocs };
     }
 
     // 应用预设配置

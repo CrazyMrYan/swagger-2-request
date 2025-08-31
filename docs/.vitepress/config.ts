@@ -14,27 +14,27 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '快速开始', link: '/getting-started' },
-      { text: '配置说明', link: '/configuration' },
-      { text: '脚本使用', link: '/scripts' },
+      { text: 'CLI 指南', link: '/cli-guide' },
+      { text: '配置指南', link: '/configuration-guide' },
       { text: '高级功能', link: '/advanced' },
-      { text: '示例', link: '/example' },
+      { text: '完整示例', link: '/example' },
     ],
     
     sidebar: {
       '/': [
         {
-          text: '指南',
+          text: '🚀 开始使用',
           items: [
             { text: '快速开始', link: '/getting-started' },
-            { text: '配置说明', link: '/configuration' },
-            { text: '脚本使用', link: '/scripts' }
+            { text: 'CLI 指南', link: '/cli-guide' },
+            { text: '配置指南', link: '/configuration-guide' }
           ]
         },
         {
-          text: '进阶',
+          text: '📚 深入学习',
           items: [
-            { text: '高级功能', link: '/advanced' },
-            { text: '完整示例', link: '/example' }
+            { text: '完整示例', link: '/example' },
+            { text: '高级功能', link: '/advanced' }
           ]
         }
       ]

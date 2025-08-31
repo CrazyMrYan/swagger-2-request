@@ -280,35 +280,90 @@ s2r publish --no-test
 
 ## ai-docs 命令
 
-使用 AI 从 Swagger 文档生成人类友好的 API 文档。
+将 Swagger 文档转换为 AI 友好格式，支持智能搜索、文档分析和多种输出格式。
 
 ### 基本语法
 
 ```bash
-s2r ai-docs <swagger-source> [options]
+s2r ai-docs [swagger-source] [options]
 ```
+
+**注意：** `swagger-source` 参数是可选的，如果未提供，将从 `.s2r.json` 配置文件中的 `swagger.source` 读取。
 
 ### 选项
 
-| 选项 | 类型 | 默认值 | 描述 |
-|------|------|--------|------|
-| `--output` | `string` | `./docs` | 输出目录 |
-| `--format` | `string` | `markdown` | 输出格式 (`markdown`, `html`) |
-| `--language` | `string` | `zh` | 文档语言 |
-| `--no-examples` | `boolean` | `false` | 不生成示例 |
-| `--no-toc` | `boolean` | `false` | 不生成目录 |
+| 选项 | 简写 | 类型 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| `--output` | `-o` | `string` | `./docs/api-ai.md` | 输出文件路径 |
+| `--format` | `-f` | `string` | `markdown` | 输出格式 (`markdown`, `json`, `yaml`) |
+| `--preset` | `-p` | `string` | `developer` | 预设配置 (`developer`, `reference`, `training`, `preview`) |
+| `--lang` | | `string` | `zh` | 文档语言 (`zh`, `en`) |
+| `--verbosity` | | `string` | `normal` | 详细程度 (`minimal`, `normal`, `detailed`) |
+| `--no-examples` | | `boolean` | `false` | 不包含使用示例 |
+| `--no-code` | | `boolean` | `false` | 不包含代码示例 |
+| `--no-toc` | | `boolean` | `false` | 不生成目录 |
+| `--analyze` | | `boolean` | `false` | 分析文档质量和覆盖率 |
+| `--search` | | `string` | | 搜索特定内容 |
+| `--config` | | `string` | `.s2r.json` | 配置文件路径 |
+
+### 预设配置
+
+S2R 提供了四种预设配置，适用于不同场景：
+
+- **developer**：适合开发者使用，包含详细信息和代码示例
+- **reference**：API 参考文档，简洁明了，JSON 格式
+- **training**：用于 AI 模型训练，包含完整数据，JSON 格式
+- **preview**：快速预览，最小化内容，Markdown 格式
 
 ### 示例
 
 ```bash
-# 生成中文 Markdown 文档
+# 使用默认配置生成文档
+s2r ai-docs
+
+# 指定 Swagger 源生成中文 Markdown 文档
 s2r ai-docs swagger.json
 
-# 生成英文 HTML 文档
-s2r ai-docs swagger.json --format html --language en
+# 使用预设配置生成参考文档
+s2r ai-docs --preset reference
+
+# 生成英文详细文档
+s2r ai-docs --lang en --verbosity detailed
+
+# 生成 JSON 格式文档
+s2r ai-docs --format json --output ./docs/api.json
+
+# 搜索特定 API 端点
+s2r ai-docs --search "用户管理"
+
+# 分析文档质量
+s2r ai-docs --analyze
 
 # 不包含示例的简化文档
-s2r ai-docs swagger.json --no-examples --no-toc
+s2r ai-docs --no-examples --no-code --no-toc
+
+# 使用自定义配置文件
+s2r ai-docs --config ./custom-config.json
+```
+
+### 配置文件支持
+
+ai-docs 命令支持从 `.s2r.json` 配置文件中读取 `aiDocs` 配置项。配置文件中的设置会与命令行选项合并，命令行选项具有更高优先级。
+
+```json
+{
+  "swagger": {
+    "source": "./swagger.json"
+  },
+  "aiDocs": {
+    "enabled": true,
+    "format": "markdown",
+    "outputDir": "./docs/api",
+    "filename": "ai-friendly-docs.md",
+    "language": "zh",
+    "verbosity": "detailed"
+  }
+}
 ```
 
 ## init 命令

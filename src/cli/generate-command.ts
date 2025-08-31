@@ -508,6 +508,20 @@ export function createQueryString(params: Record<string, any>): string {
         "publishConfig": {
           "registry": "https://registry.npmjs.org"
         }
+      },
+      
+      // AI 文档生成配置
+      "aiDocs": {
+        "enabled": true,
+        "format": "markdown",
+        "includeExamples": true,
+        "optimizeForSearch": true,
+        "includeCodeExamples": true,
+        "generateTOC": true,
+        "language": "zh",
+        "verbosity": "normal",
+        "outputDir": "./docs",
+        "filename": "api-docs.md"
       }
     };
     

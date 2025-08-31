@@ -1,34 +1,169 @@
 # 高级功能
 
-## AI 友好文档转换
+本文档介绍 S2R 的高级功能和特性，帮助您充分利用 S2R 的强大能力。
 
-将 OpenAPI 文档转换为 AI 优化的格式：
+## 🤖 AI 文档生成
+
+S2R 支持将 Swagger 文档转换为 AI 友好的格式，让 AI 工具能够更好地理解和使用您的 API。
+
+### 基础用法
 
 ```bash
-# 生成 AI 友好的文档
-s2r ai-docs ./swagger.json --output ./docs/api-ai.md
+# 生成 Markdown 格式的 AI 文档
+s2r ai-docs https://petstore.swagger.io/v2/swagger.json
 
-# 生成 JSON 格式
-s2r ai-docs ./swagger.json --format json --output ./docs/api.json
+# 指定输出文件和格式
+s2r ai-docs ./swagger.json --output ./docs/api-docs.md --format md
+
+# 生成 JSON 格式（适合程序化处理）
+s2r ai-docs ./swagger.json --format json --output ./docs/api-docs.json
 ```
 
-## NPM 包发布
+### 预设配置
 
 ```bash
-# 生成并发布 NPM 包
-s2r publish ./swagger.json --name @company/api-client
+# 使用不同的预设配置
+s2r ai-docs ./swagger.json --preset minimal      # 最小化输出
+s2r ai-docs ./swagger.json --preset standard     # 标准输出
+s2r ai-docs ./swagger.json --preset comprehensive # 详细输出
+s2r ai-docs ./swagger.json --preset search-optimized # 搜索优化
+```
 
-# 预览模式（不实际发布）
-s2r publish ./swagger.json --name @company/api-client --preview
+### 高级选项
+
+```bash
+# 自定义语言和详细程度
+s2r ai-docs ./swagger.json --lang en --verbosity detailed
+
+# 控制内容包含
+s2r ai-docs ./swagger.json --no-examples --no-code --no-toc
+
+# 优化特定用途
+s2r ai-docs ./swagger.json --search --analyze
+```
+
+## 📦 NPM 包创建与发布
+
+### 创建完整的 NPM 包项目
+
+```bash
+# 创建完整的 NPM 包项目
+s2r create my-api-client https://petstore.swagger.io/v2/swagger.json
+
+# 指定输出目录和包名
+s2r create ./my-client ./swagger.json --name @company/api-client
+
+# 创建私有包
+s2r create ./my-client ./swagger.json --name @company/api-client --private
+```
+
+### 发布到 NPM
+
+```bash
+# 进入生成的项目目录
+cd my-api-client
+
+# 安装依赖
+npm install
+
+# 构建项目
+npm run build
+
+# 发布到 NPM
+npm publish
 
 # 发布到私有注册表
-s2r publish ./swagger.json \
-  --name @company/api-client \
-  --registry https://npm.company.com \
-  --private
+npm publish --registry https://npm.company.com
 ```
 
-## 高级配置
+### 生成的项目结构
+
+```
+my-api-client/
+├── src/
+│   ├── api/          # 生成的 API 客户端
+│   ├── types/        # TypeScript 类型定义
+│   └── index.ts      # 主入口文件
+├── dist/             # 构建输出目录
+├── package.json      # NPM 包配置
+├── tsconfig.json     # TypeScript 配置
+├── .s2r.json        # S2R 配置文件
+└── README.md         # 使用文档
+```
+
+## 🔧 请求/响应拦截器
+
+拦截器允许您在请求发送前和响应返回后执行自定义逻辑。
+
+### 请求拦截器
+
+```typescript
+import { apiClient } from './src/api';
+
+// 添加认证 Token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 添加请求日志
+apiClient.interceptors.request.use((config) => {
+  console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+  return config;
+});
+
+// 添加请求时间戳
+apiClient.interceptors.request.use((config) => {
+  config.metadata = {
+    startTime: Date.now()
+  };
+  return config;
+});
+```
+
+### 响应拦截器
+
+```typescript
+// 统一错误处理
+apiClient.interceptors.response.use(
+  (response) => {
+    // 成功响应处理
+    const duration = Date.now() - response.config.metadata?.startTime;
+    console.log(`[API] 请求完成，耗时: ${duration}ms`);
+    return response;
+  },
+  (error) => {
+    // 错误响应处理
+    if (error.response?.status === 401) {
+      // 清除过期 Token
+      localStorage.removeItem('authToken');
+      // 跳转到登录页
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// 数据转换
+apiClient.interceptors.response.use((response) => {
+  // 统一处理响应数据格式
+  if (response.data && typeof response.data === 'object') {
+    // 转换日期字符串为 Date 对象
+    const dateFields = ['createdAt', 'updatedAt', 'publishedAt'];
+    dateFields.forEach(field => {
+      if (response.data[field]) {
+        response.data[field] = new Date(response.data[field]);
+      }
+    });
+  }
+  return response;
+});
+```
+
+## ⚙️ 高级配置
 
 ### 文件排除配置
 
@@ -58,7 +193,7 @@ s2r generate ./swagger.json --exclude "*test*,*mock*,custom-*"
 }
 ```
 
-**注意**：命令行参数会覆盖配置文件中的设置。
+
 
 ### Client 文件保护机制
 
@@ -71,7 +206,6 @@ s2r generate ./swagger.json -o ./src/api
 
 # 强制覆盖所有文件（包括 client 文件）
 s2r generate ./swagger.json -o ./src/api --force
-# 输出：✓ 覆盖 client.ts
 ```
 
 配置文件方式：

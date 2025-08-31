@@ -79,6 +79,18 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
     "publishConfig": {
       "registry": "https://registry.npmjs.org"
     }
+  },
+  "aiDocs": {
+    "enabled": true,
+    "format": "markdown",
+    "includeExamples": true,
+    "optimizeForSearch": true,
+    "includeCodeExamples": true,
+    "generateTOC": true,
+    "language": "zh",
+    "verbosity": "normal",
+    "outputDir": "./docs",
+    "filename": "api-docs.md"
   }
 }
 ```
@@ -199,6 +211,51 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
   }
 }
 ```
+
+### aiDocs 配置
+
+控制 AI 文档生成功能的行为：
+
+| 选项 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `enabled` | `boolean` | `true` | 是否启用 AI 文档生成 |
+| `format` | `string` | `'markdown'` | 输出格式：`markdown`、`json`、`yaml` |
+| `includeExamples` | `boolean` | `true` | 是否包含使用示例 |
+| `optimizeForSearch` | `boolean` | `true` | 是否优化搜索索引 |
+| `includeCodeExamples` | `boolean` | `true` | 是否包含代码示例 |
+| `generateTOC` | `boolean` | `true` | 是否生成目录 |
+| `language` | `string` | `'zh'` | 文档语言：`zh`、`en` |
+| `verbosity` | `string` | `'normal'` | 详细程度：`minimal`、`normal`、`detailed` |
+| `outputDir` | `string` | `'./docs'` | 输出目录 |
+| `filename` | `string` | `'api-docs.md'` | 输出文件名 |
+| `customTemplate` | `string` | - | 自定义模板路径 |
+
+**示例：**
+```json
+{
+  "aiDocs": {
+    "enabled": true,
+    "format": "markdown",
+    "includeExamples": true,
+    "optimizeForSearch": true,
+    "includeCodeExamples": true,
+    "generateTOC": true,
+    "language": "zh",
+    "verbosity": "detailed",
+    "outputDir": "./docs/api",
+    "filename": "ai-friendly-docs.md"
+  }
+}
+```
+
+**预设配置：**
+
+S2R 提供了几种预设配置，可以通过 `s2r ai-docs --preset <preset>` 使用：
+
+- **developer**：适合开发者使用，包含详细信息和代码示例
+- **reference**：API 参考文档，简洁明了
+- **training**：用于 AI 模型训练，包含完整数据
+- **preview**：快速预览，最小化内容
 
 ## 环境变量
 

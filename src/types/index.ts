@@ -129,7 +129,22 @@ export interface PackageConfig {
   };
 }
 
-// 主配置接口
+// AI 文档配置
+export interface AIDocsConfig {
+  enabled: boolean;
+  format: 'markdown' | 'json' | 'yaml';
+  includeExamples: boolean;
+  optimizeForSearch: boolean;
+  includeCodeExamples: boolean;
+  generateTOC: boolean;
+  language: 'zh' | 'en';
+  verbosity: 'minimal' | 'normal' | 'detailed';
+  outputDir: string;
+  filename: string;
+  customTemplate?: string;
+}
+
+// S2R 配置
 export interface S2RConfig {
   swagger: {
     source: string;
@@ -140,6 +155,7 @@ export interface S2RConfig {
   interceptors?: InterceptorConfig;
   mock?: MockConfig;
   package?: PackageConfig;
+  aiDocs?: AIDocsConfig;
 }
 
 // 请求选项

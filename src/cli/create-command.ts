@@ -237,6 +237,18 @@ export class CreateCommand {
         timeout: 10000,
         validateParams: true,
         filterParams: true
+      },
+      aiDocs: {
+        enabled: true,
+        format: 'markdown',
+        includeExamples: true,
+        optimizeForSearch: true,
+        includeCodeExamples: true,
+        generateTOC: true,
+        language: 'zh',
+        verbosity: 'normal',
+        outputDir: './docs',
+        filename: 'api-docs.md'
       }
     };
 
