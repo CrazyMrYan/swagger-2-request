@@ -1,22 +1,50 @@
+import { describe, it, beforeAll, afterAll } from 'vitest';
 import axios from 'axios';
 import { expect } from 'chai';
-import { describe, it, beforeAll } from 'vitest';
+import { spawn, ChildProcess } from 'child_process';
+import { promisify } from 'util';
 
-// Mock服务器基础URL
 const BASE_URL = 'http://localhost:3002';
+let mockServerProcess: ChildProcess | null = null;
+
+const sleep = promisify(setTimeout);
 
 describe('Mock Server Field Validation Tests', () => {
-  let mockServerRunning = false;
-
   beforeAll(async () => {
-    try {
-      // 检查Mock服务器是否运行
-      await axios.get(`${BASE_URL}/health`);
-      mockServerRunning = true;
-      console.log('✅ Mock服务器运行正常');
-    } catch (error) {
-      console.error('❌ Mock服务器未运行，请先启动Mock服务器');
-      throw new Error('Mock服务器未运行');
+    // 自动启动Mock服务器
+    console.log('🚀 启动Mock服务器...');
+    mockServerProcess = spawn('node', ['dist/cli.js', 'mock', 'https://petstore.swagger.io/v2/swagger.json', '--port', '3002'], {
+      stdio: 'pipe',
+      cwd: process.cwd()
+    });
+
+    // 等待服务器启动
+    await sleep(5000);
+
+    // 检查Mock服务器是否运行
+    let retries = 15;
+    while (retries > 0) {
+      try {
+        await axios.get(`${BASE_URL}/health`);
+        console.log('✅ Mock服务器已启动');
+        break;
+      } catch (error) {
+        retries--;
+        if (retries === 0) {
+          console.error('❌ Mock服务器启动失败');
+          throw new Error('Mock服务器启动失败');
+        }
+        await sleep(2000);
+      }
+    }
+  }, 30000);
+
+  afterAll(async () => {
+    // 测试完成后关闭Mock服务器
+    if (mockServerProcess) {
+      console.log('🛑 关闭Mock服务器...');
+      mockServerProcess.kill('SIGTERM');
+      await sleep(1000);
     }
   });
 
@@ -136,7 +164,7 @@ describe('Mock Server Field Validation Tests', () => {
       
       if (data.length > 0) {
         // 验证每个宠物对象的必要字段
-        data.forEach((pet: any) => {
+        data.forEach((pet: any, index: number) => {
           expect(pet).to.have.property('id');
           expect(pet).to.have.property('name');
           
@@ -149,7 +177,7 @@ describe('Mock Server Field Validation Tests', () => {
           
           // 如果有标签数组，验证其结构
           if (pet.tags && Array.isArray(pet.tags)) {
-            pet.tags.forEach((tag: any) => {
+            pet.tags.forEach((tag: any, tagIndex: number) => {
               expect(tag).to.have.property('id');
               expect(tag).to.have.property('name');
             });
@@ -163,7 +191,7 @@ describe('Mock Server Field Validation Tests', () => {
 
   describe('API响应一致性验证', () => {
     it('应该验证多次调用同一接口返回相同的字段结构', async () => {
-      const responses = [];
+      const responses: any[] = [];
       
       // 调用同一接口3次
       for (let i = 0; i < 3; i++) {
