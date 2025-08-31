@@ -12,6 +12,7 @@ import { GenerateCommand } from './generate-command';
 import { MockCommand } from './mock-command';
 import { PublishCommand } from './publish-command';
 import { AIDocsCommand } from './ai-docs-command';
+import { CreateCommand } from './create-command';
 
 const program = new Command();
 
@@ -74,7 +75,28 @@ program.addCommand(publishCommand.createCommand());
 const aiDocsCommand = new AIDocsCommand();
 program.addCommand(aiDocsCommand.createCommand());
 
-
+// create 命令
+program
+  .command('create')
+  .description('Create a publishable API client project')
+  .argument('<package-name>', 'NPM package name for the API client')
+  .argument('<swagger-source>', 'Swagger document path or URL')
+  .option('-o, --output <dir>', 'Output directory (default: ./<package-name>)')
+  .option('-t, --template <type>', 'Project template: basic or full', 'basic')
+  .option('-r, --registry <url>', 'NPM registry URL')
+  .option('--private', 'Create as private package')
+  .option('-f, --force', 'Overwrite existing directory')
+  .option('--verbose', 'Enable verbose logging')
+  .action(async (packageName, swaggerSource, options) => {
+    try {
+      const createCommand = new CreateCommand();
+      await createCommand.execute(packageName, swaggerSource, options);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(chalk.red('❌ Project creation failed:'), errorMessage);
+      process.exit(1);
+    }
+  });
 
 // init 命令
 program
@@ -137,6 +159,7 @@ program.on('--help', () => {
   console.log('Examples:');
   console.log('  $ s2r generate ./swagger.json -o ./src/api');
   console.log('  $ s2r mock https://api.example.com/swagger.json -p 3001');
+  console.log('  $ s2r create my-api-client https://api.example.com/swagger.json');
   console.log('  $ s2r publish ./swagger.json -n @company/api-client');
   console.log('  $ s2r ai-docs ./swagger.json -o ./docs/api-ai.md');
   console.log('');
