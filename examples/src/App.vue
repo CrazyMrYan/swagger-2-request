@@ -17,15 +17,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { petPost, petFindByStatusGet } from './service'
+import { petFindByStatusGet } from './service'
 import type { Pet } from './service/types'
 
 const pets = ref<Pet[]>([])
 const selectedStatus = ref<string>('available')
-const newPet = ref<Partial<Pet>>({
-  name: '',
-  status: 'available'
-})
 
 const columns = [
   { title: 'ID', dataIndex: 'id', key: 'id' },
