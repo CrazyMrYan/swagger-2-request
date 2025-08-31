@@ -291,14 +291,18 @@ export class MockServer {
        for (const contentType of contentTypes) {
          const content = successResponse.content[contentType];
          if (content?.schema) {
-           return this.generateMockData(content.schema);
+           // 为schema添加端点信息以便生成更准确的mock数据
+           const schemaWithEndpoint = { ...content.schema, _endpoint: endpoint.path };
+           return this.generateMockData(schemaWithEndpoint);
          }
        }
      }
 
     // 处理 Swagger 2.0 格式
     if (successResponse.schema) {
-      return this.generateMockData(successResponse.schema);
+      // 为schema添加端点信息以便生成更准确的mock数据
+      const schemaWithEndpoint = { ...successResponse.schema, _endpoint: endpoint.path };
+      return this.generateMockData(schemaWithEndpoint);
     }
     
     // 如果有响应定义但没有schema，尝试生成基于HTTP方法的默认响应
@@ -338,6 +342,11 @@ export class MockServer {
         return result;
       }
       return null;
+    }
+
+    // 对于有 additionalProperties 且包含端点信息的 schema，直接使用自定义逻辑
+    if (schema.type === 'object' && schema.additionalProperties && schema._endpoint) {
+      return this.fallbackMockGeneration(schema, visited);
     }
 
     try {
@@ -474,7 +483,7 @@ export class MockServer {
    */
   private generateMockObject(schema: any, visited: Set<string> = new Set()): any {
     const result: any = {};
-    const { properties = {}, required = [] } = schema;
+    const { properties = {}, required = [], additionalProperties } = schema;
 
     // 为每个属性生成数据
     Object.entries(properties).forEach(([key, propSchema]: [string, any]) => {
@@ -488,6 +497,20 @@ export class MockServer {
         result[key] = this.generateMockData(propSchema, visited);
       }
     });
+
+    // 处理 additionalProperties
+    if (additionalProperties && additionalProperties !== false) {
+      // 为 /store/inventory 这样的接口生成有意义的键名
+      const additionalKeys = this.generateAdditionalPropertyKeys(schema);
+      additionalKeys.forEach(key => {
+        if (typeof additionalProperties === 'object') {
+          result[key] = this.generateMockData(additionalProperties, visited);
+        } else if (additionalProperties === true) {
+          // 如果 additionalProperties 为 true，生成随机值
+          result[key] = Math.floor(Math.random() * 1000);
+        }
+      });
+    }
 
     return result;
   }
@@ -508,6 +531,17 @@ export class MockServer {
     }
 
     return result;
+  }
+
+  /**
+   * 为 additionalProperties 生成键名
+   */
+  private generateAdditionalPropertyKeys(schema: any): string[] {
+    // 生成符合Swagger文档示例的通用键名
+    const genericKeys = ['additionalProp1', 'additionalProp2', 'additionalProp3'];
+    
+    // 返回3个标准的additionalProperties键名
+    return genericKeys;
   }
 
   /**

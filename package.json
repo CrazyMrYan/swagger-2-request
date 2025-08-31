@@ -1,6 +1,6 @@
 {
   "name": "s2r",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "type": "module",
   "description": "Generate TypeScript API clients from Swagger/OpenAPI 2.0-3.1 documents with built-in axios, mock server, and AI-friendly documentation - S2R (Swagger to Request)",
   "keywords": [
@@ -78,6 +78,7 @@
     "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
+    "@types/chai": "^5.2.2",
     "@types/express": "^4.17.21",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^20.0.0",
@@ -85,6 +86,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitest/coverage-v8": "^0.34.0",
+    "chai": "^6.0.1",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
