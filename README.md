@@ -45,7 +45,28 @@ s2r generate ./swagger.json --output ./src/api
 s2r generate https://api.example.com/swagger.json --output ./src/api
 
 # 使用配置文件
-s2r generate ./swagger.json
+s2r generate                                                  
+⠹ 正在解析 Swagger 文档...🔄 Using @readme/openapi-parser for OpenAPI 3.1
+⠸ 正在写入文件...✓ 创建 types.ts
+✓ 创建 api.ts
+✓ 创建 client.ts
+✓ 创建 index.ts
+✔ ✅ API 客户端生成成功！
+
+📊 生成统计：
+  📁 输出目录：./src/service
+  📄 生成文件：5 个
+  🔧 API 端点：109 个
+  📦 Schema 类型：155 个
+
+📝 生成的文件：
+  ✓ src/service/types.ts
+  ✓ src/service/api.ts
+  ✓ src/service/client.ts
+  ✓ src/service/index.ts
+  ✓ src/service/utils.ts
+
+🎉 代码生成完成！现在你可以导入并使用生成的 API 函数了。
 ```
 
 ### 3. 使用生成的代码
