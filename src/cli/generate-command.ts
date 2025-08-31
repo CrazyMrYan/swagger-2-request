@@ -9,7 +9,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { SwaggerAnalyzer } from '../core/swagger-parser';
 import { CodeGenerator } from '../core/code-generator';
-import type { GenerationConfig, S2RConfig } from '../types';
+import type { GenerationConfig, RuntimeConfig, S2RConfig } from '../types';
 
 export interface GenerateOptions {
   output?: string;
@@ -69,16 +69,16 @@ export class GenerateCommand {
         await this.cleanOutputDirectory(config.generation.outputDir);
       }
 
-      // 5. 生成代码文件
-      spinner.text = '正在生成代码文件...';
-      const generatedFiles = this.generator.generateAPIClient(parsedSwagger, config.generation);
+      // 5. 生成代码
+      spinner.text = '正在生成代码...';
+      const generatedFiles = this.generator.generateAPIClient(parsedSwagger, config.generation, config.runtime);
 
       // 6. 写入文件
       spinner.text = '正在写入文件...';
       const writtenFiles = await this.writeFiles(generatedFiles, config.generation.outputDir, config.generation);
 
       // 7. 生成工具文件
-      await this.generateUtilsFile(config.generation.outputDir);
+      await this.generateUtilsFile(config.generation.outputDir, config.generation);
 
       spinner.succeed(chalk.green('✅ API 客户端生成成功！'));
 
@@ -96,7 +96,8 @@ export class GenerateCommand {
       writtenFiles.forEach(file => {
         console.log(chalk.gray(`  ✓ ${path.join(config.generation.outputDir, file.path)}`));
       });
-      console.log(chalk.gray(`  ✓ ${path.join(config.generation.outputDir, 'utils.ts')}`));
+      const fileExtension = 'ts';
+      console.log(chalk.gray(`  ✓ ${path.join(config.generation.outputDir, `utils.${fileExtension}`)}`));
 
       console.log('');
       console.log(chalk.green('🎉 代码生成完成！现在你可以导入并使用生成的 API 函数了。'));
@@ -119,7 +120,7 @@ export class GenerateCommand {
   /**
    * 加载配置文件
    */
-  private async loadConfig(options: GenerateOptions): Promise<{ generation: GenerationConfig; swagger?: { source?: string; version?: string } }> {
+  private async loadConfig(options: GenerateOptions): Promise<{ generation: GenerationConfig; runtime?: RuntimeConfig; swagger?: { source?: string; version?: string } }> {
     let config: Partial<S2RConfig> = {};
 
     // 确定配置文件路径
@@ -162,7 +163,6 @@ export class GenerateCommand {
     // 合并命令行选项
     const generation: GenerationConfig = {
       outputDir: options.output || config.generation?.outputDir || './src/api',
-      typescript: config.generation?.typescript ?? true,
       functionNaming: config.generation?.functionNaming || 'pathMethod',
       includeComments: config.generation?.includeComments ?? true,
       generateTypes: options.typesOnly ? false : (config.generation?.generateTypes ?? true),
@@ -173,6 +173,7 @@ export class GenerateCommand {
 
     return { 
       generation,
+      runtime: config.runtime,
       swagger: config.swagger 
     };
   }
@@ -292,7 +293,7 @@ export class GenerateCommand {
   /**
    * 生成工具文件
    */
-  private async generateUtilsFile(outputDir: string): Promise<void> {
+  private async generateUtilsFile(outputDir: string, config: GenerationConfig): Promise<void> {
     const utilsContent = `/**
  * 生成的 API 客户端工具函数
  */
@@ -433,7 +434,8 @@ export function createQueryString(params: Record<string, any>): string {
 }
 `;
 
-    const filePath = path.join(outputDir, 'utils.ts');
+    const fileExtension = 'ts';
+    const filePath = path.join(outputDir, `utils.${fileExtension}`);
     await fs.writeFile(filePath, utilsContent, 'utf-8');
   }
 
@@ -461,7 +463,6 @@ export function createQueryString(params: Record<string, any>): string {
       // 代码生成配置
       "generation": {
         "outputDir": "./src/api",
-        "typescript": true,
         "functionNaming": "pathMethod",
         "includeComments": true,
         "generateTypes": true,

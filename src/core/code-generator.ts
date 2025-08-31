@@ -10,6 +10,7 @@ import type {
   Parameter,
   GeneratedFile,
   GenerationConfig,
+  RuntimeConfig,
 } from '../types';
 
 export class CodeGenerator {
@@ -22,19 +23,19 @@ export class CodeGenerator {
   /**
    * 生成完整的 API 客户端代码
    */
-  generateAPIClient(swagger: ParsedSwagger, config: GenerationConfig): GeneratedFile[] {
+  generateAPIClient(swagger: ParsedSwagger, config: GenerationConfig, runtime?: RuntimeConfig): GeneratedFile[] {
     const files: GeneratedFile[] = [];
 
     // 生成类型定义文件
     if (config.generateTypes) {
-      files.push(this.generateTypesFile(swagger));
+      files.push(this.generateTypesFile(swagger, config));
     }
 
     // 生成 API 函数文件
-    files.push(this.generateAPIFunctionsFile(swagger, config));
+    files.push(this.generateAPIFunctionsFile(swagger, config, runtime));
 
     // 生成客户端配置文件
-    files.push(this.generateClientConfigFile(swagger));
+    files.push(this.generateClientConfigFile(swagger, config, runtime));
 
     // 生成主入口文件
     files.push(this.generateIndexFile(swagger, config));
@@ -45,7 +46,7 @@ export class CodeGenerator {
   /**
    * 生成类型定义文件
    */
-  private generateTypesFile(swagger: ParsedSwagger): GeneratedFile {
+  private generateTypesFile(swagger: ParsedSwagger, config: GenerationConfig): GeneratedFile {
     const lines: string[] = [];
     
     // 文件头注释
@@ -103,7 +104,7 @@ export class CodeGenerator {
           endpoint.method,
           'Params'
         );
-        lines.push(...this.generateParameterTypeLines(typeName, queryParams));
+        lines.push(...this.generateParameterTypeLines(typeName, queryParams, config));
         lines.push('');
       }
 
@@ -180,7 +181,7 @@ export class CodeGenerator {
   /**
    * 生成参数类型行
    */
-  private generateParameterTypeLines(typeName: string, parameters: Parameter[]): string[] {
+  private generateParameterTypeLines(typeName: string, parameters: Parameter[], config: GenerationConfig): string[] {
     const lines: string[] = [];
     lines.push(`export interface ${typeName} {`);
 
@@ -188,9 +189,10 @@ export class CodeGenerator {
       const optional = param.required ? '' : '?';
       const type = this.getTypeScriptType(param.schema);
       
-      if (param.description) {
+      if (param.description && config.includeComments) {
         lines.push(`  /** ${param.description} */`);
       }
+      
       lines.push(`  ${param.name}${optional}: ${type};`);
     });
 
@@ -268,20 +270,20 @@ export class CodeGenerator {
   /**
    * 生成 API 函数文件
    */
-  private generateAPIFunctionsFile(swagger: ParsedSwagger, config: GenerationConfig): GeneratedFile {
+  private generateAPIFunctionsFile(swagger: ParsedSwagger, config: GenerationConfig, runtime?: RuntimeConfig): GeneratedFile {
     const lines: string[] = [];
 
     // 导入语句
-    lines.push("import { apiClient } from './client';");
-    lines.push("import { filterQueryParams, validateRequestBody, createRequestConfig } from './utils';");
+    lines.push(`import { apiClient } from './client';`);
+    lines.push(`import { filterQueryParams, validateRequestBody, createRequestConfig } from './utils';`);
     if (config.generateTypes) {
-      lines.push("import type * as Types from './types';");
+      lines.push(`import type * as Types from './types';`);
     }
     lines.push('');
 
     // 生成每个 API 函数
     swagger.paths.forEach(endpoint => {
-      lines.push(...this.generateAPIFunctionLines(endpoint, config));
+      lines.push(...this.generateAPIFunctionLines(endpoint, config, runtime));
       lines.push('');
     });
 
@@ -295,7 +297,7 @@ export class CodeGenerator {
   /**
    * 生成单个 API 函数行
    */
-  private generateAPIFunctionLines(endpoint: APIEndpoint, config: GenerationConfig): string[] {
+  private generateAPIFunctionLines(endpoint: APIEndpoint, config: GenerationConfig, runtime?: RuntimeConfig): string[] {
     const lines: string[] = [];
 
     // 函数注释
@@ -315,12 +317,12 @@ export class CodeGenerator {
     }
 
     // 函数签名
-    const functionParams = this.generateFunctionParameters(endpoint);
-    const returnType = this.generateReturnType(endpoint);
+    const functionParams = this.generateFunctionParameters(endpoint, config);
+    const returnType = this.generateReturnType(endpoint, config);
     lines.push(`export async function ${endpoint.functionName}(${functionParams}): Promise<${returnType}> {`);
 
     // 函数体
-    lines.push(...this.generateFunctionBodyLines(endpoint));
+    lines.push(...this.generateFunctionBodyLines(endpoint, config, runtime));
 
     lines.push('}');
     return lines;
@@ -329,7 +331,7 @@ export class CodeGenerator {
   /**
    * 生成函数参数
    */
-  private generateFunctionParameters(endpoint: APIEndpoint): string {
+  private generateFunctionParameters(endpoint: APIEndpoint, config: GenerationConfig): string {
     const params: string[] = [];
 
     // 路径参数
@@ -342,23 +344,32 @@ export class CodeGenerator {
     // 查询参数
     const queryParams = endpoint.parameters.filter(p => p.in === 'query');
     if (queryParams.length > 0) {
-      const paramTypeName = this.namingStrategy.generateParameterTypeName(
-        endpoint.path,
-        endpoint.method,
-        'Params'
-      );
-      params.push(`params?: Types.${paramTypeName}`);
+      if (config.generateTypes) {
+        const paramTypeName = this.namingStrategy.generateParameterTypeName(
+          endpoint.path,
+          endpoint.method,
+          'Params'
+        );
+        params.push(`params?: Types.${paramTypeName}`);
+      } else {
+        params.push('params?: any');
+      }
     }
 
     // 请求体
     if (endpoint.requestBody) {
-      const requestTypeName = this.namingStrategy.generateParameterTypeName(
-        endpoint.path,
-        endpoint.method,
-        'Request'
-      );
-      const required = endpoint.requestBody.required ? '' : '?';
-      params.push(`data${required}: Types.${requestTypeName}`);
+      if (config.generateTypes) {
+        const requestTypeName = this.namingStrategy.generateParameterTypeName(
+          endpoint.path,
+          endpoint.method,
+          'Request'
+        );
+        const required = endpoint.requestBody.required ? '' : '?';
+        params.push(`data${required}: Types.${requestTypeName}`);
+      } else {
+        const required = endpoint.requestBody.required ? '' : '?';
+        params.push(`data${required}: any`);
+      }
     }
 
     // 选项参数
@@ -370,9 +381,9 @@ export class CodeGenerator {
   /**
    * 生成返回类型
    */
-  private generateReturnType(endpoint: APIEndpoint): string {
+  private generateReturnType(endpoint: APIEndpoint, config: GenerationConfig): string {
     const successResponse = endpoint.responses.find(r => r.statusCode === '200' || r.statusCode === '201');
-    if (successResponse) {
+    if (successResponse && config.generateTypes) {
       const responseTypeName = this.namingStrategy.generateParameterTypeName(
         endpoint.path,
         endpoint.method,
@@ -386,8 +397,41 @@ export class CodeGenerator {
   /**
    * 生成函数体行
    */
-  private generateFunctionBodyLines(endpoint: APIEndpoint): string[] {
+  private generateFunctionBodyLines(endpoint: APIEndpoint, config: GenerationConfig, runtime?: RuntimeConfig): string[] {
     const lines: string[] = [];
+
+    // 参数验证（如果启用）
+    if (runtime?.validateParams) {
+      const requiredPathParams = endpoint.parameters.filter(p => p.in === 'path' && p.required);
+      const requiredQueryParams = endpoint.parameters.filter(p => p.in === 'query' && p.required);
+      
+      if (requiredPathParams.length > 0) {
+        requiredPathParams.forEach(param => {
+          lines.push(`  if (${param.name} === undefined || ${param.name} === null) {`);
+          lines.push(`    throw new Error('Required parameter "${param.name}" is missing');`);
+          lines.push('  }');
+        });
+        lines.push('');
+      }
+      
+      if (requiredQueryParams.length > 0) {
+        lines.push('  if (params) {');
+        requiredQueryParams.forEach(param => {
+          lines.push(`    if (params.${param.name} === undefined || params.${param.name} === null) {`);
+          lines.push(`      throw new Error('Required query parameter "${param.name}" is missing');`);
+          lines.push('    }');
+        });
+        lines.push('  }');
+        lines.push('');
+      }
+      
+      if (endpoint.requestBody?.required) {
+        lines.push('  if (data === undefined || data === null) {');
+        lines.push('    throw new Error(\'Request body is required\');');
+        lines.push('  }');
+        lines.push('');
+      }
+    }
 
     // 构建 URL
     const pathParams = endpoint.parameters.filter(p => p.in === 'path');
@@ -433,7 +477,7 @@ export class CodeGenerator {
   /**
    * 生成客户端配置文件
    */
-  private generateClientConfigFile(swagger: ParsedSwagger): GeneratedFile {
+  private generateClientConfigFile(swagger: ParsedSwagger, config: GenerationConfig, runtime?: RuntimeConfig): GeneratedFile {
     const lines: string[] = [
       '/**',
       ` * API 客户端配置`,
@@ -553,13 +597,26 @@ export class CodeGenerator {
       '}',
       '',
       '/** 默认 API 客户端实例 */',
-      'export const apiClient = new APIClient();',
+      '',
+    ];
+
+    // 添加默认客户端实例
+    if (runtime && (runtime.baseURL || runtime.timeout)) {
+      lines.push(`export const apiClient = new APIClient(${JSON.stringify({
+        baseURL: runtime.baseURL,
+        timeout: runtime.timeout
+      })});`);
+    } else {
+      lines.push('export const apiClient = new APIClient();');
+    }
+
+    lines.push(
       '',
       '/** 创建新的 API 客户端实例 */',
       'export function createAPIClient(config?: APIClientConfig): APIClient {',
       '  return new APIClient(config);',
       '}'
-    ];
+    );
 
     return {
       path: 'client.ts',
@@ -588,22 +645,24 @@ export class CodeGenerator {
       ' * - TypeScript 类型安全',
       ' */',
       '',
-      "// 核心 API 函数",
-      "export * from './api';",
     ];
+
+    lines.push("");
+    lines.push("// 核心 API 函数");
+    lines.push(`export * from './api';`);
 
     if (config.generateTypes) {
       lines.push("");
       lines.push("// TypeScript 类型定义");
-      lines.push("export * from './types';");
+      lines.push(`export * from './types';`);
     }
 
     lines.push("");
     lines.push("// API 客户端配置");
-    lines.push("export * from './client';");
+    lines.push(`export * from './client';`);
     lines.push("");
     lines.push("// 工具函数");
-    lines.push("export * from './utils';");
+    lines.push(`export * from './utils';`);
 
     return {
       path: 'index.ts',

@@ -15,7 +15,6 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
   },
   "generation": {
     "outputDir": "./src/api",
-    "typescript": true,
     "functionNaming": "pathMethod",
     "includeComments": true,
     "generateTypes": true,
@@ -37,7 +36,6 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
   },
   "generation": {
     "outputDir": "./src/api",
-    "typescript": true,
     "functionNaming": "pathMethod",
     "includeComments": true,
     "generateTypes": true,
@@ -93,7 +91,6 @@ S2R 支持使用配置文件来管理项目设置，推荐使用 `.s2r.json` 作
 | 选项 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `outputDir` | `string` | `'./src/api'` | 代码输出目录 |
-| `typescript` | `boolean` | `true` | 是否生成 TypeScript 代码 |
 | `functionNaming` | `'pathMethod' \| 'operationId'` | `'pathMethod'` | 函数命名方式 |
 | `includeComments` | `boolean` | `true` | 是否包含注释 |
 | `generateTypes` | `boolean` | `true` | 是否生成类型定义 |

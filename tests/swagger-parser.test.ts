@@ -297,6 +297,11 @@ describe('SwaggerAnalyzer', () => {
       expect(tags).toEqual([]);
     });
 
+    it('should get security schemes correctly', () => {
+      const securitySchemes = analyzer.getSecuritySchemes();
+      expect(securitySchemes).toEqual({});
+    });
+
     it('should filter endpoints by tag', async () => {
       const result = await analyzer.parseSwagger(mockSwaggerDoc);
       const userEndpoints = analyzer.filterEndpointsByTag(result.paths, 'users');
@@ -305,6 +310,104 @@ describe('SwaggerAnalyzer', () => {
       userEndpoints.forEach(endpoint => {
         expect(endpoint.tags).toContain('users');
       });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle invalid URL gracefully', async () => {
+      await expect(analyzer.parseSwagger('https://invalid-url-that-does-not-exist.com/swagger.json'))
+        .rejects.toThrow();
+    });
+
+    it('should handle malformed JSON gracefully', async () => {
+      const malformedDoc = {
+        openapi: '3.0.0',
+        info: {
+          title: 'Test',
+          version: '1.0.0'
+        },
+        paths: {
+          '/test': {
+            get: {
+              // Missing required fields
+            }
+          }
+        }
+      };
+
+      const result = await analyzer.parseSwagger(malformedDoc as any);
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle swagger document with security schemes', async () => {
+      const docWithSecurity: OpenAPIV3.Document = {
+        ...mockSwaggerDoc,
+        components: {
+          ...mockSwaggerDoc.components,
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT'
+            } as OpenAPIV3.HttpSecurityScheme,
+            apiKey: {
+              type: 'apiKey',
+              in: 'header',
+              name: 'X-API-Key'
+            } as OpenAPIV3.ApiKeySecurityScheme
+          }
+        }
+      };
+
+      await analyzer.parseSwagger(docWithSecurity);
+      const securitySchemes = analyzer.getSecuritySchemes();
+      
+      expect(securitySchemes).toHaveProperty('bearerAuth');
+      expect(securitySchemes).toHaveProperty('apiKey');
+      expect((securitySchemes.bearerAuth as OpenAPIV3.HttpSecurityScheme).type).toBe('http');
+      expect((securitySchemes.apiKey as OpenAPIV3.ApiKeySecurityScheme).type).toBe('apiKey');
+    });
+
+    it('should handle swagger document with tags', async () => {
+      const docWithTags: OpenAPIV3.Document = {
+        ...mockSwaggerDoc,
+        tags: [
+          { name: 'users', description: 'User operations' },
+          { name: 'admin', description: 'Admin operations' }
+        ]
+      };
+
+      await analyzer.parseSwagger(docWithTags);
+      const tags = analyzer.getTags();
+      
+      expect(tags).toHaveLength(2);
+      expect(tags).toContain('users');
+      expect(tags).toContain('admin');
+    });
+
+    it('should handle empty paths object', async () => {
+      const docWithEmptyPaths: OpenAPIV3.Document = {
+        ...mockSwaggerDoc,
+        paths: {}
+      };
+
+      const result = await analyzer.parseSwagger(docWithEmptyPaths);
+      expect(result.paths).toHaveLength(0);
+    });
+
+    it('should handle missing servers array', async () => {
+      const docWithoutServers: OpenAPIV3.Document = {
+        ...mockSwaggerDoc
+      };
+      delete (docWithoutServers as any).servers;
+
+      const result = await analyzer.parseSwagger(docWithoutServers);
+      expect(result.servers).toHaveLength(0);
+      
+      const baseUrl = analyzer.getBaseUrl();
+      expect(baseUrl).toBe('');
     });
   });
 });

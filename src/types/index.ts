@@ -75,7 +75,6 @@ export interface ParsedSwagger {
 // 代码生成配置
 export interface GenerationConfig {
   outputDir: string;
-  typescript: boolean;
   functionNaming: 'pathMethod' | 'operationId';
   includeComments: boolean;
   generateTypes: boolean;
