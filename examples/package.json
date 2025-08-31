@@ -1,0 +1,26 @@
+{
+  "name": "s2r-petstore-example",
+  "version": "1.0.0",
+  "description": "A complete example using s2r with Petstore API, Vue 3 and Ant Design Vue",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mock": "s2r mock",
+    "generate": "s2r generate",
+    "ai-docs": "s2r ai-docs"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "ant-design-vue": "^4.0.0",
+    "axios": "^1.6.0",
+    "s2r": "latest"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

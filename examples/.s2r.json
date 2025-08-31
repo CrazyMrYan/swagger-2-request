@@ -1,0 +1,59 @@
+{
+  "_comment": "S2R 配置文件 - 更多配置选项请参考: https://crazymryan.github.io/swagger-2-request/",
+  "swagger": {
+    "source": "https://petstore.swagger.io/v2/swagger.json",
+    "version": "3.0"
+  },
+  "generation": {
+    "outputDir": "./src/service",
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": [],
+    "forceOverride": false
+  },
+  "runtime": {
+    "baseURL": "",
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
+  },
+  "mock": {
+    "enabled": true,
+    "port": 3001,
+    "delay": 0,
+    "enableUI": true,
+    "customResponses": "./mock-responses"
+  },
+  "interceptors": {
+    "request": {
+      "enabled": true
+    },
+    "response": {
+      "enabled": true
+    }
+  },
+  "package": {
+    "name": "@company/api-client",
+    "version": "1.0.0",
+    "description": "Generated API client",
+    "repository": "https://github.com/company/api-client",
+    "private": false,
+    "publishConfig": {
+      "registry": "https://registry.npmjs.org"
+    }
+  },
+  "aiDocs": {
+    "enabled": true,
+    "format": "markdown",
+    "includeExamples": true,
+    "optimizeForSearch": true,
+    "includeCodeExamples": true,
+    "generateTOC": true,
+    "language": "zh",
+    "verbosity": "normal",
+    "outputDir": "./docs",
+    "filename": "api-docs.md"
+  }
+}
