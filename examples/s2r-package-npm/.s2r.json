@@ -1,0 +1,35 @@
+{
+  "swagger": {
+    "source": "https://petstore.swagger.io/v2/swagger.json",
+    "version": "3.0"
+  },
+  "generation": {
+    "outputDir": "./src",
+    "functionNaming": "pathMethod",
+    "includeComments": true,
+    "generateTypes": true,
+    "cleanOutput": false,
+    "excludeFiles": [
+      "client.ts",
+      "index.ts"
+    ],
+    "forceOverride": false
+  },
+  "runtime": {
+    "timeout": 10000,
+    "validateParams": true,
+    "filterParams": true
+  },
+  "aiDocs": {
+    "enabled": true,
+    "format": "markdown",
+    "includeExamples": true,
+    "optimizeForSearch": true,
+    "includeCodeExamples": true,
+    "generateTOC": true,
+    "language": "zh",
+    "verbosity": "normal",
+    "outputDir": "./docs",
+    "filename": "api-docs.md"
+  }
+}

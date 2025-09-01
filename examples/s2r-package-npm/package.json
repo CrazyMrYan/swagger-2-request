@@ -1,0 +1,48 @@
+{
+  "name": "s2r-package-npm",
+  "version": "1.0.1",
+  "description": "API client for API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "prepare": "npm run build",
+    "generate": "s2r generate",
+    "mock": "s2r mock",
+    "validate": "s2r validate",
+    "publish:patch": "npm version patch && npm publish",
+    "publish:minor": "npm version minor && npm publish",
+    "publish:major": "npm version major && npm publish",
+    "publish:beta": "npm version prerelease --preid=beta && npm publish --tag beta",
+    "publish:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha",
+    "publish:dry": "npm publish --dry-run"
+  },
+  "keywords": [
+    "api-client",
+    "swagger",
+    "openapi",
+    "typescript",
+    "s2r"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "rimraf": "^5.0.0",
+    "s2r": "latest"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "private": false
+}
