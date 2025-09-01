@@ -323,9 +323,8 @@ S2R 会按以下顺序查找配置文件：
 1. 命令行指定的配置文件（`--config` 参数）
 2. 环境变量 `S2R_CONFIG_PATH` 指定的文件
 3. 当前目录下的 `.s2r.json`
-4. 当前目录下的 `.s2r.js`
-5. 当前目录下的 `s2r.config.json`
-6. 当前目录下的 `s2r.config.js`
+
+**注意**：S2R 只支持 JSON 格式的配置文件（`.s2r.json`），不支持 JavaScript 配置文件。
 
 ## 配置验证
 

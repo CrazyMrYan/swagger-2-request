@@ -644,6 +644,4 @@ s2r generate swagger.json --debug --keep-temp
 ## 更多资源
 
 - [配置指南](./configuration-guide.md) - 详细的配置选项说明
-- [API 参考](./api-reference.md) - 生成代码的 API 文档
-- [示例项目](../examples/) - 完整的使用示例
 - [GitHub 仓库](https://github.com/CrazyMrYan/swagger-2-request) - 源代码和问题反馈
