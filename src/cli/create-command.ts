@@ -106,7 +106,6 @@ export class CreateCommand {
     // 创建基础目录结构
     await fs.mkdir(outputDir, { recursive: true });
     await fs.mkdir(path.join(outputDir, 'src'), { recursive: true });
-    await fs.mkdir(path.join(outputDir, 'dist'), { recursive: true });
     
     if (options.template === 'full') {
       await fs.mkdir(path.join(outputDir, 'docs'), { recursive: true });
@@ -134,7 +133,13 @@ export class CreateCommand {
         'prepare': 'npm run build',
         'generate': 's2r generate',
         'mock': 's2r mock',
-        'validate': 's2r validate'
+        'validate': 's2r validate',
+        'publish:patch': 'npm version patch && npm publish',
+        'publish:minor': 'npm version minor && npm publish',
+        'publish:major': 'npm version major && npm publish',
+        'publish:beta': 'npm version prerelease --preid=beta && npm publish --tag beta',
+        'publish:alpha': 'npm version prerelease --preid=alpha && npm publish --tag alpha',
+        'publish:dry': 'npm publish --dry-run'
       },
       keywords: [
         'api-client',

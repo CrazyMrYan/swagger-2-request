@@ -1,6 +1,6 @@
 {
   "name": "s2r",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "type": "module",
   "description": "Generate TypeScript API clients from Swagger/OpenAPI 2.0-3.1 documents with built-in axios, mock server, and AI-friendly documentation - S2R (Swagger to Request)",
   "keywords": [
